@@ -4,6 +4,8 @@ import 'package:ombor/controllers/blocs/archived_category_bloc/archived_category
 import 'package:ombor/controllers/blocs/balance_bloc/balance_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_bloc.dart';
+import 'package:ombor/controllers/blocs/expense_cash_flows/expense_cash_flow_bloc.dart';
+import 'package:ombor/controllers/blocs/income_cash_flows/income_cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/result_bloc/result_bloc.dart';
 import 'package:ombor/controllers/blocs/search_bloc/search_bloc.dart';
 import 'package:ombor/models/helpers/category_helper.dart';
@@ -40,6 +42,8 @@ class MainApp extends StatelessWidget {
           BlocProvider(create: (context) => BalanceBloc()),
           BlocProvider(create: (context) => ResultBloc()),
           BlocProvider(create: (context) => SearchBloc()),
+          BlocProvider(create: (context) => IncomeCashFlowBloc()),
+          BlocProvider(create: (context) => ExpenseCashFlowBloc()),
 
           BlocProvider(
             create: (context) => ArchivedCategoryBloc(CategoryHelper()),

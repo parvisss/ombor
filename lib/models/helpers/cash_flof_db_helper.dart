@@ -86,6 +86,8 @@ class CashFlowDBHelper {
     }
   }
 
+ 
+
   //! UPDATE
   Future<int> updateCashFlow(String tableName, CashFlowModel cashFlow) async {
     try {

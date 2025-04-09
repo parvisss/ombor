@@ -100,6 +100,47 @@ class ResultHelper {
     }
   }
 
+  //! get only income
+  Future<List<CashFlowModel>> getIncomeCashFlows() async {
+    try {
+      final db = await database;
+
+      // Ijobiy (income) turidagi yozuvlarni olish
+      final List<Map<String, dynamic>> maps = await db.query(
+        _tableName,
+        where: 'isPositive = ?',
+        whereArgs: [1], // Faoliyat turi: income (ijobiy)
+      );
+
+      // Ro'yxatni teskari qilish
+      return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
+    } catch (e) {
+      print("Error fetching income cash flows: $e");
+
+      return [];
+    }
+  }
+
+  //!get only expence
+  Future<List<CashFlowModel>> getExpenseCashFlows() async {
+    try {
+      final db = await database;
+
+      // Manfiy (expense) turidagi yozuvlarni olish
+      final List<Map<String, dynamic>> maps = await db.query(
+        _tableName,
+        where: 'isPositive = ?',
+        whereArgs: [0], // Faoliyat turi: expense (manfiy)
+      );
+
+      // Ro'yxatni teskari qilish
+      return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
+    } catch (e) {
+      print("Error fetching expense cash flows: $e");
+      return [];
+    }
+  }
+
   //! UPDATE
   Future<int> updateCashFlow(CashFlowModel cashFlow) async {
     try {

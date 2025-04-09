@@ -3,6 +3,7 @@ import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_icons.dart';
 import 'package:ombor/views/screens/archive/archive_screen.dart';
 import 'package:ombor/views/screens/home/home_screen.dart';
+import 'package:ombor/views/screens/reports/reporst_screen.dart';
 import 'package:ombor/views/screens/result/results_screen.dart';
 
 class LayoutScaffold extends StatefulWidget {
@@ -24,7 +25,7 @@ class _LayoutScaffoldState extends State<LayoutScaffold> {
   final List<Widget> _pages = [
     HomeScreen(),
     ResultsScreen(),
-    ResultsScreen(),
+    ReporstScreen(),
     ArchiveScreen(),
     ResultsScreen(),
   ];

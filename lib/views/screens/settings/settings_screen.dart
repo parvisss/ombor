@@ -10,9 +10,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'settings_screen_title'.tr(),
-        ), // Translate the title dynamically
+        title: Text('settings'.tr()), // Translate the title dynamically
       ),
       body: ListView(
         children: [

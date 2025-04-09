@@ -56,6 +56,7 @@ class CategoryHelper {
     }
   }
 
+  //!get
   Future<List<CategoryModel>> fetchCategories({
     required bool isArchive,
     DateTime? fromDate,
@@ -101,9 +102,18 @@ class CategoryHelper {
   }
 
   //!Delete category
-  Future<int> deleteCategory(String id) async {
+  Future<int> deleteCategory(List<String> ids) async {
     final db = await database;
-    return await db.delete('categories', where: 'id = ?', whereArgs: [id]);
+    if (ids.isEmpty) {
+      return 0; // Agar IDlar ro'yxati bo'sh bo'lsa, hech narsa o'chirmaymiz
+    }
+    // "?" belgilari soni IDlar ro'yxati uzunligiga teng bo'lishi kerak
+    final placeholders = List.generate(ids.length, (_) => '?').join(',');
+    return await db.delete(
+      _tableName,
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
   }
 
   //! clear categories table
@@ -192,7 +202,6 @@ class CategoryHelper {
       'categories.db',
     ); // database nomi bilan bir xil bo'lishi kerak
     await deleteDatabase(path);
-    print('✅ Local database deleted: $path');
   }
 
   //!search
@@ -255,5 +264,15 @@ class CategoryHelper {
       maps.length,
       (i) => CategoryModel.fromMap(maps[maps.length - 1 - i]), // reversed
     );
+  }
+
+  //! Barcha kategoriyalarning IDlarini olish
+  Future<List<String>> getAllCategoryIds() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableName,
+      columns: ['id'],
+    );
+    return maps.map((e) => e['id'] as String).toList();
   }
 }

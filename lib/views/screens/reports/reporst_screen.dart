@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ombor/controllers/app_globals.dart';
@@ -16,14 +17,14 @@ import 'package:ombor/views/screens/search/calculator_screen.dart';
 import 'package:ombor/views/screens/search/filter_data_bottom_sheet.dart';
 import '../../../controllers/blocs/income_cash_flows/income_cash_flow_state.dart';
 
-class ReporstScreen extends StatefulWidget {
-  const ReporstScreen({super.key});
+class ReportsScreen extends StatefulWidget {
+  const ReportsScreen({super.key});
 
   @override
-  State<ReporstScreen> createState() => _ReporstScreenState();
+  State<ReportsScreen> createState() => _ReportsScreenState();
 }
 
-class _ReporstScreenState extends State<ReporstScreen> {
+class _ReportsScreenState extends State<ReportsScreen> {
   _reset() async {
     context.read<IncomeCashFlowBloc>().add(GetIncomeCashFlowsEvent());
     context.read<ExpenseCashFlowBloc>().add(GetExpenseCashFlowsEvent());
@@ -40,7 +41,7 @@ class _ReporstScreenState extends State<ReporstScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Отчеты"),
+        title: Text('reports_screen_title'.tr(context: context)),
         actions: [
           IconButton(
             onPressed: () {
@@ -51,7 +52,7 @@ class _ReporstScreenState extends State<ReporstScreen> {
             icon: AppIcons.calculate,
           ),
 
-          //filter
+          // Filtr
           IconButton(
             onPressed: () {
               showModalBottomSheet(
@@ -99,7 +100,7 @@ class _ReporstScreenState extends State<ReporstScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 70.0),
                       child: PieChartWidget(
-                        title: "Kirimlar Tahlili",
+                        title: 'income_analysis'.tr(context: context),
                         cashFlows: state.incomeCashFlows,
                       ),
                     );
@@ -120,7 +121,7 @@ class _ReporstScreenState extends State<ReporstScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 70.0),
                       child: PieChartWidget(
-                        title: "Chiqimlar Tahlili",
+                        title: 'expense_analysis'.tr(context: context),
                         cashFlows: state.expenseCashFlows,
                       ),
                     );
@@ -141,7 +142,7 @@ class _ReporstScreenState extends State<ReporstScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 70.0),
                       child: PieCahrtOverall(
-                        title: "Umumiy Tahlil",
+                        title: 'overall_analysis'.tr(context: context),
                         cashFlows: state.results,
                       ),
                     );
@@ -151,7 +152,7 @@ class _ReporstScreenState extends State<ReporstScreen> {
                   }
                   return SizedBox(
                     height: MediaQuery.of(context).size.height - 200,
-                    child: Center(child: Text("Пусто")),
+                    child: Center(child: Text('empty'.tr(context: context))),
                   );
                 },
               ),

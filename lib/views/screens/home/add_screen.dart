@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ombor/controllers/blocs/balance_bloc/balance_bloc.dart';
@@ -102,7 +103,7 @@ class _AddScreenState extends State<AddScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Категория')),
+      appBar: AppBar(title: Text('category'.tr(context: context))),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
@@ -111,7 +112,7 @@ class _AddScreenState extends State<AddScreen> {
               // Name input
               CustomTextField(
                 controller: nameController,
-                hintText: 'Название',
+                hintText: 'name'.tr(context: context),
                 icon: Icons.person,
                 isRequired: true,
                 isValid: isNameValid,
@@ -124,7 +125,7 @@ class _AddScreenState extends State<AddScreen> {
                 // Toggle: Debt / Loan
                 CustomTextField(
                   controller: commentController,
-                  hintText: 'Комментарий',
+                  hintText: 'comment'.tr(context: context),
                   icon: Icons.comment,
                 ),
 
@@ -142,7 +143,7 @@ class _AddScreenState extends State<AddScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            "Долг",
+                            "debt".tr(context: context),
                             style: TextStyle(
                               color: isDebt ? Colors.white : Colors.black,
                             ),
@@ -166,7 +167,7 @@ class _AddScreenState extends State<AddScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            "Займ",
+                            "loan".tr(context: context),
                             style: TextStyle(
                               color: !isDebt ? Colors.white : Colors.black,
                             ),
@@ -188,7 +189,7 @@ class _AddScreenState extends State<AddScreen> {
               if (!widget.isCategory) ...[
                 CustomTextField(
                   controller: amountController,
-                  hintText: 'сумма',
+                  hintText: 'amount'.tr(context: context),
                   icon: Icons.attach_money,
                   isRequired: true,
                   isValid: isAmountValid,
@@ -207,7 +208,7 @@ class _AddScreenState extends State<AddScreen> {
         child: CustomButton(
           onTap: () => _addCategory(context),
           color: AppColors.mainColor,
-          child: const Text('Добавить'),
+          child: Text('add'.tr(context: context)),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

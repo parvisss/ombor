@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:ombor/models/cash_flow_model.dart';
@@ -29,8 +30,8 @@ class PieCahrtOverall extends StatelessWidget {
     final total = totalIncome + totalExpense;
 
     final List<MapEntry<String, double>> entries = [
-      MapEntry('Kirim', totalIncome),
-      MapEntry('Chiqim', totalExpense),
+      MapEntry('income', totalIncome),
+      MapEntry('expense', totalExpense),
     ];
 
     return Padding(
@@ -38,7 +39,10 @@ class PieCahrtOverall extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            title.tr(context: context),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 20),
           SizedBox(
             height: 250,
@@ -67,7 +71,7 @@ class PieCahrtOverall extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildLegend(entries, total),
+          _buildLegend(entries, total, context),
         ],
       ),
     );
@@ -78,7 +82,11 @@ class PieCahrtOverall extends StatelessWidget {
     return colors[index % colors.length];
   }
 
-  Widget _buildLegend(List<MapEntry<String, double>> entries, double total) {
+  Widget _buildLegend(
+    List<MapEntry<String, double>> entries,
+    double total,
+    BuildContext context,
+  ) {
     return Wrap(
       spacing: 8,
       runSpacing: 4,
@@ -87,7 +95,8 @@ class PieCahrtOverall extends StatelessWidget {
             final percentage = ((e.value / total) * 100).toStringAsFixed(1);
             return _LegendItem(
               color: _getColor(entries.indexOf(e)),
-              label: '${e.key} - ${e.value.toStringAsFixed(2)} ($percentage%)',
+              label:
+                  '${e.key.tr(context: context)} - ${e.value.toStringAsFixed(2)} ($percentage%)',
             );
           }).toList(),
     );
@@ -111,7 +120,7 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(shape: BoxShape.rectangle, color: color),
         ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(label.tr(context: context), style: const TextStyle(fontSize: 12)),
       ],
     );
   }

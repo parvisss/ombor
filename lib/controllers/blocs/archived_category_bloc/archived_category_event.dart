@@ -7,11 +7,11 @@ class LoadArchivedCategories extends ArchivedCategoryEvent {
   final DateTime? toDate = AppGlobals.archiveEndDate.value;
 }
 
-class DeleteArchivedCategory extends ArchivedCategoryEvent {
-  final String id;
+// class DeleteArchivedCategory extends ArchivedCategoryEvent {
+//   final String id;
 
-  DeleteArchivedCategory(this.id);
-}
+//   DeleteArchivedCategory(this.id);
+// }
 
 class RestoreArchivedCategory extends ArchivedCategoryEvent {
   final List<String> ids;

@@ -24,21 +24,21 @@ class ArchivedCategoryBloc
       }
     });
 
-    on<DeleteArchivedCategory>((event, emit) async {
-      emit(ArchivedCategoryLoading());
-      await Future.delayed(Duration(milliseconds: 300));
-      try {
-        await categoryHelper.deleteCategory(event.id);
-        emit(ArchivedCategoryDeleted(event.id));
+    // on<DeleteArchivedCategory>((event, emit) async {
+    //   emit(ArchivedCategoryLoading());
+    //   await Future.delayed(Duration(milliseconds: 300));
+    //   try {
+    //     await categoryHelper.deleteCategory(event.id);
+    //     emit(ArchivedCategoryDeleted(event.id));
 
-        final updatedList = await categoryHelper.fetchCategories(
-          isArchive: true,
-        );
-        emit(ArchivedCategoryLoaded(updatedList));
-      } catch (e) {
-        emit(ArchivedCategoryError("Failed to delete archived category"));
-      }
-    });
+    //     final updatedList = await categoryHelper.fetchCategories(
+    //       isArchive: true,
+    //     );
+    //     emit(ArchivedCategoryLoaded(updatedList));
+    //   } catch (e) {
+    //     emit(ArchivedCategoryError("Failed to delete archived category"));
+    //   }
+    // });
 
     on<RestoreArchivedCategory>((event, emit) async {
       emit(ArchivedCategoryLoading());

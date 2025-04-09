@@ -31,7 +31,7 @@ class CashFlowUpdatedState extends CashFlowState {
 }
 
 class CashFlowDeletedState extends CashFlowState {
-  final String id;
+  final List<String> ids;
 
-  CashFlowDeletedState(this.id);
+  CashFlowDeletedState(this.ids);
 }

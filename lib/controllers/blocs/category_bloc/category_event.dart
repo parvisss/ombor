@@ -24,9 +24,9 @@ class UpdateCategoryEvent extends CategoryEvent {
 }
 
 class DeleteCategoryEvent extends CategoryEvent {
-  final String id;
+  final List<String> id;
 
-  DeleteCategoryEvent(this.id);
+  DeleteCategoryEvent({required this.id});
 }
 
 class ChangeBalanceEvent extends CategoryEvent {

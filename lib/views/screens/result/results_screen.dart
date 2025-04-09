@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -41,7 +42,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
     context.read<ResultBloc>().add(GetResultEvent());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Итоги', style: AppTextStyles.headlineLarge),
+        title: Text(
+          'results'.tr(context: context),
+          style: AppTextStyles.headlineLarge,
+        ),
         actions: [
           //**print */
           IconButton(
@@ -58,7 +62,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 // Ustun nomlarini qo'shish: faqat "Title", "Amount", "Time"
                 if (results.isNotEmpty) {
                   // Ustunlar nomini tanlash (faqat kerakli maydonlar)
-                  List<String> columns = ["Название", "Сумма(uzs)", "Дата"];
+                  List<String> columns = [
+                    'title_excel'.tr(context: context),
+                    'amount_excel'.tr(context: context),
+                    'date_excel'.tr(context: context),
+                  ];
 
                   // Ustun nomlarini Excelga yozish
                   for (int col = 0; col < columns.length; col++) {

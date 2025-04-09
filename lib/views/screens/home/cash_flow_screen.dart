@@ -1,5 +1,6 @@
 import 'dart:io' show File;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
@@ -126,9 +127,7 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                 } else if (state is CashFlowLoadedState) {
                   final cashFlows = state.cashFlows;
                   if (cashFlows.isEmpty) {
-                    return const Center(
-                      child: Text("Hech qanday naqd pul yo'q"),
-                    );
+                    return Center(child: Text("empty".tr(context: context)));
                   }
                   return RefreshIndicator(
                     onRefresh: () async {

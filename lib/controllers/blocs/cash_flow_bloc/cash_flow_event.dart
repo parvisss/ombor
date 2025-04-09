@@ -20,7 +20,7 @@ class UpdateCashFlowEvent extends CashFlowEvent {
 }
 
 class DeleteCashFlowEvent extends CashFlowEvent {
-  final String id;
+  final List<String> ids;
 
-  DeleteCashFlowEvent(this.id);
+  DeleteCashFlowEvent(this.ids);
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class BarChartSummary extends StatelessWidget {
@@ -23,7 +24,7 @@ class BarChartSummary extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
           child: Text(
-            '${date.day}/${date.month} - Kirim: ${income.toStringAsFixed(2)} so‘m, Chiqim: ${expense.toStringAsFixed(2)} so‘m',
+            '${date.day}/${date.month} - ${'income'.tr(context: context)}: ${income.toStringAsFixed(2)} ${'currency_sum'.tr(context: context)}, ${'expense'.tr(context: context)}: ${expense.toStringAsFixed(2)} ${'currency_sum'.tr(context: context)}',
             style: const TextStyle(fontSize: 14),
           ),
         );

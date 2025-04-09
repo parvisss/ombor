@@ -86,8 +86,6 @@ class CashFlowDBHelper {
     }
   }
 
- 
-
   //! UPDATE
   Future<int> updateCashFlow(String tableName, CashFlowModel cashFlow) async {
     try {
@@ -104,18 +102,32 @@ class CashFlowDBHelper {
     }
   }
 
-  //! DELETE
-  Future<int> deleteCashFlow(String id) async {
+  //! DELETE (bitta jadvaldagi bitta yozuvni o'chirish uchun)
+  Future<int> deleteCashFlow(String tableName, String id) async {
     try {
       final db = await database;
-      await _createTableIfNotExists(id);
-      return await db.delete('cash_flow', where: 'id = ?', whereArgs: [id]);
+      await _createTableIfNotExists(tableName);
+      return await db.delete(tableName, where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       rethrow;
     }
   }
 
-  //! Ixtiyoriy jadvalni tozalash
+  //! Bir nechta jadvalni o'chirish
+  Future<void> deleteTables(List<String> tableNames) async {
+    final db = await database;
+    for (final tableName in tableNames) {
+      try {
+        await db.execute('DROP TABLE IF EXISTS $tableName;');
+      } catch (e) {
+        // Har bir jadvalni o'chirishda xatolik yuzaga kelishi mumkin,
+        // lekin boshqa jadvallarni o'chirishga harakat qilish uchun davom etamiz.
+        print("Error dropping table $tableName: $e");
+      }
+    }
+  }
+
+  //! Ixtiyoriy jadvalni tozalash (barcha yozuvlarni o'chirish)
   Future<void> clearTable(String tableName) async {
     try {
       final db = await database;

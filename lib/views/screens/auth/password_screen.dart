@@ -164,9 +164,12 @@ class _PasswordScreenState extends State<PasswordScreen> {
                   children: [
                     Text(
                       _isFirstTime
-                          ? 'Enter a new PIN'
-                              .tr() // Use translated string
-                          : 'Enter PIN'.tr(), // Use translated string
+                          ? 'enter_new_pin'.tr(
+                            context: context,
+                          ) // Use translated string
+                          : 'enter_pin'.tr(
+                            context: context,
+                          ), // Use translated string
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

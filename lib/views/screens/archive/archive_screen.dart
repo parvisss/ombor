@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ombor/controllers/app_globals.dart';
@@ -109,7 +110,10 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
         title:
             isSelectionMode
                 ? Text("${selectedCategoryIds.length} tanlandi")
-                : Text('Архив', style: AppTextStyles.headlineLarge),
+                : Text(
+                  'archive'.tr(context: context),
+                  style: AppTextStyles.headlineLarge,
+                ),
         actions:
             isSelectionMode
                 ? [

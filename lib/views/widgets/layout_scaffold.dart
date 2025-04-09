@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_icons.dart';
@@ -26,7 +27,7 @@ class _LayoutScaffoldState extends State<LayoutScaffold> {
   final List<Widget> _pages = [
     HomeScreen(),
     ResultsScreen(),
-    ReporstScreen(),
+    ReportsScreen(),
     ArchiveScreen(),
     SettingsScreen(),
   ];
@@ -44,12 +45,27 @@ class _LayoutScaffoldState extends State<LayoutScaffold> {
         iconSize: 35,
         // fixedColor: Colors.red,
         currentIndex: _selectedIndex,
-        items: const [
-          BottomNavigationBarItem(icon: AppIcons.monetization, label: 'Долги'),
-          BottomNavigationBarItem(icon: AppIcons.result, label: 'Итоги'),
-          BottomNavigationBarItem(icon: AppIcons.report, label: 'Отчёты'),
-          BottomNavigationBarItem(icon: AppIcons.archive, label: 'Архив'),
-          BottomNavigationBarItem(icon: AppIcons.settings, label: 'Настройки'),
+        items: [
+          BottomNavigationBarItem(
+            icon: AppIcons.monetization,
+            label: 'home'.tr(context: context),
+          ),
+          BottomNavigationBarItem(
+            icon: AppIcons.result,
+            label: 'results'.tr(context: context),
+          ),
+          BottomNavigationBarItem(
+            icon: AppIcons.report,
+            label: 'reports_screen_title'.tr(context: context),
+          ),
+          BottomNavigationBarItem(
+            icon: AppIcons.archive,
+            label: 'archive'.tr(context: context),
+          ),
+          BottomNavigationBarItem(
+            icon: AppIcons.settings,
+            label: 'settings'.tr(context: context),
+          ),
         ],
         onTap: _onTap,
       ),

@@ -31,7 +31,7 @@ class CategoryUpdatedState extends CategoryState {
 }
 
 class CategoryDeletedState extends CategoryState {
-  final String id;
+  final List<String> id;
 
   CategoryDeletedState(this.id);
 }

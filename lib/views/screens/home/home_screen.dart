@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ombor/controllers/app_globals.dart';
@@ -75,8 +76,25 @@ class _HomeScreenState extends State<HomeScreen> {
       ArchiveMultipleCategoriesEvent(selectedItemsIds, 1),
     );
     context.read<BalanceBloc>().add(GetTotalBalanceEvent());
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('categories_archived_successfully'.tr(context: context)),
+      ),
+    );
     _exitSelectionMode();
+  }
+
+  void _onDelete() {
+    List<String> ids = selectedCategoryIds.toList();
+    context.read<CategoryBloc>().add(DeleteCategoryEvent(id: ids));
+    context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids));
+    _exitSelectionMode();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('categories_deleted_successfully'.tr(context: context)),
+      ),
+    );
+    Navigator.of(context).pop();
   }
 
   void _onPrint() async {
@@ -139,8 +157,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 : null,
         title:
             isSelectionMode
-                ? Text("${selectedCategoryIds.length} tanlandi")
-                : Text('Долги', style: AppTextStyles.headlineLarge),
+                ? Text(
+                  "${selectedCategoryIds.length}  ${"tanlandi".tr(context: context)}",
+                )
+                : Text(
+                  'home'.tr(context: context),
+                  style: AppTextStyles.headlineLarge,
+                ),
         actions:
             isSelectionMode
                 ? [
@@ -148,7 +171,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(onPressed: _onArchive, icon: AppIcons.archive),
 
                   //delete
-                  IconButton(onPressed: () {}, icon: AppIcons.remove),
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text(
+                              'confirm_delete_title'.tr(context: context),
+                            ),
+                            actions: <Widget>[
+                              //no
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('no'.tr(context: context)),
+                              ),
+
+                              //yes
+                              TextButton(
+                                onPressed: _onDelete,
+                                child: Text('yes'.tr(context: context)),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    icon: AppIcons.remove,
+                  ),
                 ]
                 : [
                   //print
@@ -287,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else if (state is CategoryErrorState) {
-                  return Center(child: Text("Xatolik: ${state.errorMessage}"));
+                  return Center(child: Text(state.errorMessage));
                 } else {
                   return Center(child: CustomRestartButton(onTap: _reset));
                 }

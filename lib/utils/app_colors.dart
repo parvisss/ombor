@@ -18,4 +18,4 @@ class AppColors {
   //backgroun
   static const Color background = Color(0xFFFFFFFF);
   static const Color backgroundSecondary = Color.fromARGB(255, 228, 227, 227);
-}
+} 

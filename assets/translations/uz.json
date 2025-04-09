@@ -1,0 +1,17 @@
+{
+    "settings_screen_title": "Sozlamalar",
+    "update_pin": "PIN-kodni yangilash",
+    "language_change": "Tilni o'zgartirish",
+    "choose_language": "Tilni tanlang",
+    "old_pin_invalid": "Eski PIN noto‘g‘ri",
+    "new_pin_invalid": "Yangi PIN 4 raqamdan iborat bo‘lishi kerak",
+    "pins_not_match": "PIN-kodlar mos kelmaydi",
+    "pin_updated_successfully": "PIN muvaffaqiyatli yangilandi",
+    "update_pin_title": "PIN-ni yangilash",
+    "enter_old_and_new_pins": "Iltimos, eski va yangi PIN kodlarini kiriting",
+    "old_pin": "Eski PIN",
+    "new_pin": "Yangi PIN",
+    "confirm_new_pin": "Yangi PINni tasdiqlang",
+    "update_pin_button": "PIN-ni yangilash"
+  }
+  

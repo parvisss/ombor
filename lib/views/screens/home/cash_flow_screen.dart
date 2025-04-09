@@ -8,8 +8,7 @@ import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_state.dart';
 import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_text_styles.dart';
-import 'package:ombor/views/screens/add_screen.dart';
-import 'package:ombor/views/widgets/balance_text_widget.dart';
+import 'package:ombor/views/screens/home/add_screen.dart';
 import 'package:ombor/views/widgets/cash_flow_card.dart';
 import 'package:ombor/views/widgets/custom_floating_button.dart';
 import 'package:open_file/open_file.dart' show OpenFile;
@@ -108,10 +107,10 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
       ),
       body: Column(
         children: [
-          ListTile(
-            title: Text('Общая сумма'),
-            subtitle: BalanceTextWidget(balance: widget.balance),
-          ),
+          // ListTile(
+          //   title: Text('Общая сумма'),
+          //   subtitle: BalanceTextWidget(balance: widget.balance),
+          // ),
           Container(
             color: AppColors.backgroundSecondary,
             width: double.infinity,

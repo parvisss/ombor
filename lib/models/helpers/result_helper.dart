@@ -100,43 +100,58 @@ class ResultHelper {
     }
   }
 
-  //! get only income
-  Future<List<CashFlowModel>> getIncomeCashFlows() async {
+  Future<List<CashFlowModel>> getIncomeCashFlowsByDate({
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
     try {
       final db = await database;
 
-      // Ijobiy (income) turidagi yozuvlarni olish
-      final List<Map<String, dynamic>> maps = await db.query(
-        _tableName,
-        where: 'isPositive = ?',
-        whereArgs: [1], // Faoliyat turi: income (ijobiy)
-      );
+      String query = 'SELECT * FROM $_tableName WHERE isPositive = 1';
+      List<dynamic> args = [];
 
-      // Ro'yxatni teskari qilish
+      if (fromDate != null) {
+        query += ' AND time >= ?';
+        args.add(fromDate.toIso8601String());
+      }
+
+      if (toDate != null) {
+        query += ' AND time <= ?';
+        args.add(toDate.toIso8601String());
+      }
+
+      final maps = await db.rawQuery(query, args);
       return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
     } catch (e) {
-      print("Error fetching income cash flows: $e");
-
+      print("Error fetching filtered income cash flows: $e");
       return [];
     }
   }
 
-  //!get only expence
-  Future<List<CashFlowModel>> getExpenseCashFlows() async {
+  Future<List<CashFlowModel>> getExpenseCashFlowsByDate({
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
     try {
       final db = await database;
 
-      // Manfiy (expense) turidagi yozuvlarni olish
-      final List<Map<String, dynamic>> maps = await db.query(
-        _tableName,
-        where: 'isPositive = ?',
-        whereArgs: [0], // Faoliyat turi: expense (manfiy)
-      );
+      String query = 'SELECT * FROM $_tableName WHERE isPositive = 0';
+      List<dynamic> args = [];
 
-      // Ro'yxatni teskari qilish
+      if (fromDate != null) {
+        query += ' AND time >= ?';
+        args.add(fromDate.toIso8601String());
+      }
+
+      if (toDate != null) {
+        query += ' AND time <= ?';
+        args.add(toDate.toIso8601String());
+      }
+
+      final maps = await db.rawQuery(query, args);
       return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
     } catch (e) {
-      print("Error fetching expense cash flows: $e");
+      print("Error fetching filtered expense cash flows: $e");
       return [];
     }
   }

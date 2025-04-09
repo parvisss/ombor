@@ -20,4 +20,16 @@ class AppGlobals {
   static ValueNotifier<DateTime?> resultEndDate = ValueNotifier<DateTime?>(
     null,
   );
+
+  // expense_income
+
+  //
+  static ValueNotifier<DateTime?> expenseIncomeStartDate =
+      ValueNotifier<DateTime?>(null);
+  static ValueNotifier<DateTime?> expenseIncomeEndDate =
+      ValueNotifier<DateTime?>(null);
+
+  //balance
+  // ValueNotifier
+  static final ValueNotifier<double> totalBalanceNotifier = ValueNotifier(0.0);
 }

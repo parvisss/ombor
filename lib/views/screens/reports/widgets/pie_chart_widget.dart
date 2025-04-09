@@ -28,48 +28,50 @@ class PieChartWidget extends StatelessWidget {
 
     // Kategoriyalar va miqdorlar ro'yxatini olish
     final entries = categoryTotals.entries.toList();
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 250,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 2,
-                centerSpaceRadius: 40,
-                sections:
-                    entries.map((e) {
-                      final percentage = ((e.value / total) * 100)
-                          .toStringAsFixed(1);
-                      return PieChartSectionData(
-                        value: e.value,
-                        color: _getColor(entries.indexOf(e)),
-                        radius: 80,
-                        showTitle:
-                            double.parse(percentage) >=
-                            10.0, // Show title only if percentage >= 25
-                        title: '$percentage%', // Foizni segmentda ko'rsatish
-                        titleStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      );
-                    }).toList(),
+    if (cashFlows.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: PieChart(
+                PieChartData(
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 40,
+                  sections:
+                      entries.map((e) {
+                        final percentage = ((e.value / total) * 100)
+                            .toStringAsFixed(1);
+                        return PieChartSectionData(
+                          value: e.value,
+                          color: _getColor(entries.indexOf(e)),
+                          radius: 80,
+                          showTitle:
+                              double.parse(percentage) >=
+                              10.0, // Show title only if percentage >= 25
+                          title: '$percentage%', // Foizni segmentda ko'rsatish
+                          titleStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        );
+                      }).toList(),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          // Legend (Chiziqli ro'yxat)
-          _buildLegend(entries, total),
-        ],
-      ),
-    );
+            const SizedBox(height: 16),
+            // Legend (Chiziqli ro'yxat)
+            _buildLegend(entries, total),
+          ],
+        ),
+      );
+    }
+    return SizedBox();
   }
 
   /// Ranglarni avtomatik generatsiya qilish funksiyasi.

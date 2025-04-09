@@ -24,7 +24,7 @@ class CustomButton extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: color ?? AppColors.background,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(8),
         ),
         height: height ?? 60,
         width: width ?? double.infinity,

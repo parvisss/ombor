@@ -13,6 +13,7 @@ import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/models/category_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/views/widgets/custom_button.dart';
+import 'package:ombor/views/widgets/custom_text_field.dart';
 
 class AddScreen extends StatefulWidget {
   final bool isCategory;
@@ -44,6 +45,7 @@ class _AddScreenState extends State<AddScreen> {
   void _addCategory(BuildContext context) {
     final name = nameController.text.trim();
     final amountText = amountController.text.trim();
+    context.read<BalanceBloc>().add(GetTotalBalanceEvent());
 
     // Reset validation flags
     setState(() {
@@ -107,55 +109,74 @@ class _AddScreenState extends State<AddScreen> {
           child: Column(
             children: [
               // Name input
-              TextField(
+              CustomTextField(
                 controller: nameController,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.person),
-                  labelText: 'имя*',
-                  border: const OutlineInputBorder(),
-                  errorText: isNameValid ? null : 'This field is required',
-                ),
+                hintText: 'Название',
+                icon: Icons.person,
+                isRequired: true,
+                isValid: isNameValid,
               ),
+
               const SizedBox(height: 16),
 
               // If it's not a category, show Debt/Loan options
               if (!widget.isCategory) ...[
                 // Toggle: Debt / Loan
-                TextField(
+                CustomTextField(
                   controller: commentController,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.comment),
-                    labelText: 'Комментарий',
-                    border: OutlineInputBorder(),
-                  ),
+                  hintText: 'Комментарий',
+                  icon: Icons.comment,
                 ),
+
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ChoiceChip(
                       label: Row(
-                        children: const [
-                          Icon(Icons.remove_circle, color: Colors.white),
-                          SizedBox(width: 6),
-                          Text("Долг", style: TextStyle(color: Colors.white)),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.remove_circle,
+                            color: isDebt ? Colors.white : Colors.black,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Долг",
+                            style: TextStyle(
+                              color: isDebt ? Colors.white : Colors.black,
+                            ),
+                          ),
                         ],
                       ),
                       selected: isDebt,
-                      selectedColor: Colors.red,
+                      selectedColor: AppColors.negative,
+                      backgroundColor: Colors.grey.shade200,
+                      showCheckmark: false,
                       onSelected: (_) => setState(() => isDebt = true),
                     ),
                     const SizedBox(width: 10),
                     ChoiceChip(
                       label: Row(
-                        children: const [
-                          Icon(Icons.add_circle, color: Colors.white),
-                          SizedBox(width: 6),
-                          Text("Займ", style: TextStyle(color: Colors.white)),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add_circle,
+                            color: !isDebt ? Colors.white : Colors.black,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Займ",
+                            style: TextStyle(
+                              color: !isDebt ? Colors.white : Colors.black,
+                            ),
+                          ),
                         ],
                       ),
                       selected: !isDebt,
-                      selectedColor: Colors.green,
+                      selectedColor: AppColors.positive,
+                      backgroundColor: Colors.grey.shade200,
+                      showCheckmark: false,
                       onSelected: (_) => setState(() => isDebt = false),
                     ),
                   ],
@@ -165,15 +186,13 @@ class _AddScreenState extends State<AddScreen> {
 
               // Amount input (only show if not a category)
               if (!widget.isCategory) ...[
-                TextField(
+                CustomTextField(
                   controller: amountController,
+                  hintText: 'сумма',
+                  icon: Icons.attach_money,
+                  isRequired: true,
+                  isValid: isAmountValid,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.attach_money),
-                    labelText: 'сумма* Uzs',
-                    border: const OutlineInputBorder(),
-                    errorText: isAmountValid ? null : 'This field is required',
-                  ),
                 ),
               ],
               const SizedBox(height: 16),

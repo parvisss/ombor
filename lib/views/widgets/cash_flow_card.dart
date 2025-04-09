@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/utils/app_text_styles.dart';
-import 'package:ombor/views/widgets/balance_text_widget.dart'; // Yangi modelni import qilish
+import 'package:ombor/views/screens/home/widgets/balance_text_widget.dart'; // Yangi modelni import qilish
 
 class CashFlowCard extends StatelessWidget {
   final CashFlowModel cashFlow;

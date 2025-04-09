@@ -49,11 +49,50 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     });
   }
 
+  void _onFilter() {
+    final parentContext = context; // yuqorida saqlab qo‘yamiz
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return FilterDateBottomSheet(
+          startDate: AppGlobals.archiveStartDate,
+          endDate: AppGlobals.archiveEndDate,
+          onStartDateSelected: (pickedDate) {
+            if (pickedDate != null) {
+              AppGlobals.archiveStartDate.value = pickedDate;
+            }
+          },
+          onEndDateSelected: (pickedDate) {
+            if (pickedDate != null) {
+              AppGlobals.archiveEndDate.value = pickedDate;
+            }
+          },
+          onFilter: () {
+            parentContext.read<ArchivedCategoryBloc>().add(
+              LoadArchivedCategories(),
+            );
+            Navigator.pop(context); // BottomSheet ni yopish
+          },
+        );
+      },
+    );
+  }
+
   void _exitSelectionMode() {
     setState(() {
       selectedCategoryIds.clear();
       isSelectionMode = false;
     });
+  }
+
+  void _unArchive() {
+    List<String> selectedItemsIds = selectedCategoryIds.toList();
+    context.read<ArchivedCategoryBloc>().add(
+      RestoreArchivedCategory(selectedItemsIds),
+    );
+
+    _exitSelectionMode();
   }
 
   @override
@@ -74,21 +113,10 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
         actions:
             isSelectionMode
                 ? [
-                  IconButton(
-                    onPressed: () {
-                      List<String> selectedItemsIds =
-                          selectedCategoryIds.toList();
-                      context.read<ArchivedCategoryBloc>().add(
-                        RestoreArchivedCategory(selectedItemsIds),
-                      );
-                      _exitSelectionMode();
-                    },
-                    icon: AppIcons.unArchive,
-                  ),
+                  IconButton(onPressed: _unArchive, icon: AppIcons.unArchive),
                   IconButton(onPressed: () {}, icon: AppIcons.remove),
                 ]
                 : [
-                  IconButton(onPressed: () {}, icon: AppIcons.print),
                   IconButton(
                     onPressed: () {
                       Navigator.of(context).push(
@@ -97,38 +125,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                     },
                     icon: AppIcons.calculate,
                   ),
-                  IconButton(
-                    onPressed: () {
-                      final parentContext = context; // yuqorida saqlab qo‘yamiz
-
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return FilterDateBottomSheet(
-                            startDate: AppGlobals.archiveStartDate,
-                            endDate: AppGlobals.archiveEndDate,
-                            onStartDateSelected: (pickedDate) {
-                              if (pickedDate != null) {
-                                AppGlobals.archiveStartDate.value = pickedDate;
-                              }
-                            },
-                            onEndDateSelected: (pickedDate) {
-                              if (pickedDate != null) {
-                                AppGlobals.archiveEndDate.value = pickedDate;
-                              }
-                            },
-                            onFilter: () {
-                              parentContext.read<ArchivedCategoryBloc>().add(
-                                LoadArchivedCategories(),
-                              );
-                              Navigator.pop(context); // BottomSheet ni yopish
-                            },
-                          );
-                        },
-                      );
-                    },
-                    icon: AppIcons.filter,
-                  ),
+                  IconButton(onPressed: _onFilter, icon: AppIcons.filter),
                 ],
       ),
       body: BlocBuilder<ArchivedCategoryBloc, ArchivedCategoryState>(

@@ -1,0 +1,17 @@
+{
+    "settings_screen_title": "Settings",
+    "update_pin": "Update PIN",
+    "language_change": "Change Language",
+    "choose_language": "Choose Language",
+    "old_pin_invalid": "Old PIN is invalid",
+    "new_pin_invalid": "New PIN must be exactly 4 digits",
+    "pins_not_match": "PINs do not match",
+    "pin_updated_successfully": "PIN updated successfully",
+    "update_pin_title": "Update PIN",
+    "enter_old_and_new_pins": "Please enter the old and new PINs",
+    "old_pin": "Old PIN",
+    "new_pin": "New PIN",
+    "confirm_new_pin": "Confirm new PIN",
+    "update_pin_button": "Update PIN"
+  }
+  

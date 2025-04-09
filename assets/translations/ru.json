@@ -1,0 +1,17 @@
+{
+    "settings_screen_title": "Настройки",
+    "update_pin": "Обновить PIN",
+    "language_change": "Сменить язык",
+    "choose_language": "Выберите язык",
+    "old_pin_invalid": "Старый PIN-код неверный",
+    "new_pin_invalid": "Новый PIN-код должен состоять из 4 цифр",
+    "pins_not_match": "PIN-коды не совпадают",
+    "pin_updated_successfully": "PIN-код успешно обновлён",
+    "update_pin_title": "Обновить PIN-код",
+    "enter_old_and_new_pins": "Пожалуйста, введите старый и новый PIN-коды",
+    "old_pin": "Старый PIN",
+    "new_pin": "Новый PIN",
+    "confirm_new_pin": "Подтвердите новый PIN",
+    "update_pin_button": "Обновить PIN-код"
+  }
+  

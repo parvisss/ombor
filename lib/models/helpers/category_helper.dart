@@ -145,20 +145,22 @@ class CategoryHelper {
   Future<double> getTotalBalance() async {
     final db = await database;
     try {
-      // All categories' balance
+      // Faqat arxivlanmagan kategoriyalarni olish
       List<Map<String, dynamic>> maps = await db.query(
         _tableName,
-        columns: ['balance'], // faqat balance maydonini olish
+        columns: ['balance'],
+        where: 'isArchived = ?',
+        whereArgs: [0],
       );
 
-      // Balanslarning umumiy yig'indisini hisoblash
+      // Umumiy balansni hisoblash
       double totalBalance = maps.fold(0.0, (sum, item) {
         return sum + (item['balance'] as double);
       });
 
       return totalBalance;
     } catch (e) {
-      return 0.0; // agar xato yuzaga kelsa, 0.0 qaytariladi
+      return 0.0;
     }
   }
 

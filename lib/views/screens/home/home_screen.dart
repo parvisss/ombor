@@ -1,11 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/balance_bloc/balance_bloc.dart';
 import 'package:ombor/controllers/blocs/balance_bloc/balance_event.dart';
-import 'package:ombor/controllers/blocs/balance_bloc/balance_state.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_bloc.dart';
@@ -14,12 +12,12 @@ import 'package:ombor/controllers/blocs/category_bloc/category_state.dart';
 import 'package:ombor/models/category_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_text_styles.dart';
-import 'package:ombor/views/screens/add_screen.dart';
+import 'package:ombor/views/screens/home/add_screen.dart';
 import 'package:ombor/views/screens/home/cash_flow_screen.dart';
+import 'package:ombor/views/screens/home/widgets/overal_balance_widget.dart';
 import 'package:ombor/views/screens/search/calculator_screen.dart';
 import 'package:ombor/views/screens/search/filter_data_bottom_sheet.dart';
 import 'package:ombor/views/screens/search/search_screen.dart';
-import 'package:ombor/views/widgets/balance_text_widget.dart';
 import 'package:ombor/views/widgets/category_card.dart';
 import 'package:ombor/views/widgets/custom_floating_button.dart';
 import 'package:ombor/views/widgets/custom_restart_button.dart';
@@ -71,6 +69,63 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _onArchive() {
+    List<String> selectedItemsIds = selectedCategoryIds.toList();
+    context.read<CategoryBloc>().add(
+      ArchiveMultipleCategoriesEvent(selectedItemsIds, 1),
+    );
+    context.read<BalanceBloc>().add(GetTotalBalanceEvent());
+
+    _exitSelectionMode();
+  }
+
+  void _onPrint() async {
+    // ResultBlocdan ma'lumotlarni olish
+    final state = context.read<CategoryBloc>().state;
+    if (state is CategoryLoadedState) {
+      final List<CategoryModel> results = state.categories;
+
+      // Excel faylni yaratish
+      final Workbook workbook = Workbook();
+      final Worksheet sheet = workbook.worksheets[0];
+
+      // Ustun nomlarini qo'shish: faqat "Title", "Amount", "Time"
+      if (results.isNotEmpty) {
+        // Ustunlar nomini tanlash (faqat kerakli maydonlar)
+        List<String> columns = ["Название", "Сумма(uzs)", "Дата"];
+
+        // Ustun nomlarini Excelga yozish
+        for (int col = 0; col < columns.length; col++) {
+          sheet.getRangeByIndex(1, col + 1).setText(columns[col]);
+        }
+
+        // Ma'lumotlarni Excelga yozish (faqat "title", "amount", "time")
+        for (int row = 0; row < results.length; row++) {
+          var data = [
+            results[row].title,
+            results[row].balance.toString(),
+            results[row].time.toString(),
+          ];
+
+          for (int col = 0; col < data.length; col++) {
+            sheet.getRangeByIndex(row + 2, col + 1).setText(data[col]);
+          }
+        }
+      }
+
+      // Excel faylni saqlash
+      final directory = await getApplicationSupportDirectory();
+      final String filename = '${directory.path}/output.xlsx';
+      final File file = File(filename);
+      final List<int> bytes = workbook.saveAsStream();
+      await file.writeAsBytes(bytes, flush: true);
+      workbook.dispose();
+
+      // Faylni boshqa dasturda ochish
+      OpenFile.open(filename);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,17 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
             isSelectionMode
                 ? [
                   //archive
-                  IconButton(
-                    onPressed: () {
-                      List<String> selectedItemsIds =
-                          selectedCategoryIds.toList();
-                      context.read<CategoryBloc>().add(
-                        ArchiveMultipleCategoriesEvent(selectedItemsIds, 1),
-                      );
-                      _exitSelectionMode();
-                    },
-                    icon: AppIcons.archive,
-                  ),
+                  IconButton(onPressed: _onArchive, icon: AppIcons.archive),
 
                   //delete
                   IconButton(onPressed: () {}, icon: AppIcons.remove),
@@ -108,61 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : [
                   //print
                   IconButton(
-                    onPressed: () async {
-                      // ResultBlocdan ma'lumotlarni olish
-                      final state = context.read<CategoryBloc>().state;
-                      if (state is CategoryLoadedState) {
-                        final List<CategoryModel> results = state.categories;
-
-                        // Excel faylni yaratish
-                        final Workbook workbook = Workbook();
-                        final Worksheet sheet = workbook.worksheets[0];
-
-                        // Ustun nomlarini qo'shish: faqat "Title", "Amount", "Time"
-                        if (results.isNotEmpty) {
-                          // Ustunlar nomini tanlash (faqat kerakli maydonlar)
-                          List<String> columns = [
-                            "Название",
-                            "Сумма(uzs)",
-                            "Дата",
-                          ];
-
-                          // Ustun nomlarini Excelga yozish
-                          for (int col = 0; col < columns.length; col++) {
-                            sheet
-                                .getRangeByIndex(1, col + 1)
-                                .setText(columns[col]);
-                          }
-
-                          // Ma'lumotlarni Excelga yozish (faqat "title", "amount", "time")
-                          for (int row = 0; row < results.length; row++) {
-                            var data = [
-                              results[row].title,
-                              results[row].balance.toString(),
-                              results[row].time.toString(),
-                            ];
-
-                            for (int col = 0; col < data.length; col++) {
-                              sheet
-                                  .getRangeByIndex(row + 2, col + 1)
-                                  .setText(data[col]);
-                            }
-                          }
-                        }
-
-                        // Excel faylni saqlash
-                        final directory =
-                            await getApplicationSupportDirectory();
-                        final String filename = '${directory.path}/output.xlsx';
-                        final File file = File(filename);
-                        final List<int> bytes = workbook.saveAsStream();
-                        await file.writeAsBytes(bytes, flush: true);
-                        workbook.dispose();
-
-                        // Faylni boshqa dasturda ochish
-                        OpenFile.open(filename);
-                      }
-                    },
+                    onPressed: _onPrint,
 
                     icon: AppIcons.print, // Excelni chop etish ikonasi
                   ),
@@ -224,17 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          ListTile(
-            title: Text('Общая сумма'),
-            subtitle: BlocBuilder<BalanceBloc, BalanceState>(
-              builder: (context, state) {
-                if (state is BalanceLoadedState) {
-                  return BalanceTextWidget(balance: state.totalBalance);
-                }
-                return Text("0");
-              },
-            ),
-          ),
+          OveralBalanceWidget(),
           Container(
             color: AppColors.backgroundSecondary,
             width: double.infinity,
@@ -249,15 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is CategoryLoadedState) {
                   if (state.categories.isEmpty) {
-                    return Center(
-                      child: CustomRestartButton(
-                        onTap: () {
-                          context.read<CategoryBloc>().add(
-                            GetCategoriesEvent(isArchive: false),
-                          );
-                        },
-                      ),
-                    );
+                    return Center(child: CustomRestartButton(onTap: _reset));
                   }
                   final categories = state.categories;
                   return RefreshIndicator(
@@ -316,15 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else if (state is CategoryErrorState) {
                   return Center(child: Text("Xatolik: ${state.errorMessage}"));
                 } else {
-                  return Center(
-                    child: CustomRestartButton(
-                      onTap: () {
-                        context.read<CategoryBloc>().add(
-                          GetCategoriesEvent(isArchive: false),
-                        );
-                      },
-                    ),
-                  );
+                  return Center(child: CustomRestartButton(onTap: _reset));
                 }
               },
             ),

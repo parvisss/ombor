@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/income_cash_flows/income_cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/income_cash_flows/income_cash_flow_state.dart';
 import 'package:ombor/models/cash_flow_model.dart';
@@ -15,7 +16,10 @@ class IncomeCashFlowBloc
     ) async {
       emit(IncomeCashFlowLoadingState());
       try {
-        List<CashFlowModel> data = await _resultHelper.getIncomeCashFlows();
+        List<CashFlowModel> data = await _resultHelper.getIncomeCashFlowsByDate(
+          fromDate: AppGlobals.expenseIncomeStartDate.value,
+          toDate: AppGlobals.expenseIncomeEndDate.value,
+        );
         emit(IncomeCashFlowLoadedState(data));
       } catch (e) {
         emit(IncomeCashFlowErrorState(e.toString()));

@@ -16,4 +16,5 @@ class AppIcons {
   );
   static const Icon result = Icon(Icons.account_tree_outlined, size: 39);
   static const Icon remove = Icon(Icons.delete, size: 39);
+  static const Icon arrowForqard = Icon(Icons.arrow_forward_ios);
 }

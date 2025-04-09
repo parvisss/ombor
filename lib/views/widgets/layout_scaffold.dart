@@ -5,6 +5,7 @@ import 'package:ombor/views/screens/archive/archive_screen.dart';
 import 'package:ombor/views/screens/home/home_screen.dart';
 import 'package:ombor/views/screens/reports/reporst_screen.dart';
 import 'package:ombor/views/screens/result/results_screen.dart';
+import 'package:ombor/views/screens/settings/settings_screen.dart';
 
 class LayoutScaffold extends StatefulWidget {
   const LayoutScaffold({super.key});
@@ -27,7 +28,7 @@ class _LayoutScaffoldState extends State<LayoutScaffold> {
     ResultsScreen(),
     ReporstScreen(),
     ArchiveScreen(),
-    ResultsScreen(),
+    SettingsScreen(),
   ];
   @override
   Widget build(BuildContext context) {

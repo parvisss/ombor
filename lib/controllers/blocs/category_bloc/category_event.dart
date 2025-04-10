@@ -31,13 +31,11 @@ class DeleteCategoryEvent extends CategoryEvent {
 
 class ChangeBalanceEvent extends CategoryEvent {
   final String id;
-  final double amount;
   final bool isIncrement;
   final bool isArchive;
 
   ChangeBalanceEvent({
     required this.id,
-    required this.amount,
     required this.isIncrement,
     required this.isArchive,
   });

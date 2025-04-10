@@ -53,8 +53,14 @@ class CashFlowBloc extends Bloc<CashFlowEvent, CashFlowState> {
     on<DeleteCashFlowEvent>((event, emit) async {
       emit(CashFlowLoadingState());
       try {
-        await cashFlowHelper.deleteTables(event.ids);
+        await cashFlowHelper.deleteTablesByIds(event.ids);
         emit(CashFlowDeletedState(event.ids));
+        if (event.categoryId != null) {
+          final cashFlows = await cashFlowHelper.getCashFlows(
+            event.categoryId!,
+          );
+          emit(CashFlowLoadedState(cashFlows));
+        }
       } catch (e) {
         emit(CashFlowErrorState("Failed to delete cash flow"));
       }

@@ -139,7 +139,7 @@ class _AddScreenState extends State<AddScreen> {
         context.read<CategoryBloc>().add(
           ChangeBalanceEvent(
             id: widget.categoryId!,
-            amount: amount.abs().toDouble(),
+            // amount: amount.abs().toDouble(),
             isIncrement: !isDebt,
             isArchive: false,
           ),
@@ -190,7 +190,7 @@ class _AddScreenState extends State<AddScreen> {
         context.read<CategoryBloc>().add(
           ChangeBalanceEvent(
             id: cashFlow.categoryId,
-            amount: amountDifference.abs().toDouble(),
+            // amount: amountDifference.abs().toDouble(),
             isIncrement: amountDifference >= 0,
             isArchive: false,
           ),

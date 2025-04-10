@@ -3,16 +3,18 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_state.dart';
+import 'package:ombor/controllers/blocs/category_bloc/category_bloc.dart';
+import 'package:ombor/controllers/blocs/category_bloc/category_event.dart';
 import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_text_styles.dart';
 import 'package:ombor/views/screens/home/add_screen.dart';
 import 'package:ombor/views/widgets/cash_flow_card.dart';
 import 'package:ombor/views/widgets/custom_floating_button.dart';
+import 'package:ombor/views/widgets/custom_restart_button.dart';
 import 'package:ombor/views/widgets/show_snack_bar_message_text.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -53,13 +55,17 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
         selectedCashFlowIds.add(cashFlowId);
       }
       isSelectionMode = selectedCashFlowIds.isNotEmpty;
+      // Agar tanlangan ID'lar bo'sh bo'lsa, tanlash rejimini bekor qilish
+      if (selectedCashFlowIds.isEmpty) {
+        isSelectionMode = false;
+      }
     });
   }
 
   void _exitSelectionMode() {
     setState(() {
       selectedCashFlowIds.clear();
-      isSelectionMode = false;
+      isSelectionMode = false; // Aniq tanlash rejimini bekor qilish
     });
   }
 
@@ -79,13 +85,22 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
             TextButton(
               onPressed: () {
                 List<String> ids = selectedCashFlowIds.toList();
-                context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids));
+                context.read<CashFlowBloc>().add(
+                  DeleteCashFlowEvent(ids: ids, categoryId: widget.categoryId),
+                );
+                context.read<CategoryBloc>().add(
+                  ChangeBalanceEvent(
+                    id: widget.categoryId,
+                    isIncrement: true,
+                    isArchive: false,
+                  ),
+                );
                 _exitSelectionMode();
                 showSnackBarMessage(
                   context,
                   'cash_flows_deleted_successfully'.tr(context: context),
                 );
-                context.pop();
+                Navigator.of(context).pop();
               },
               child: Text('yes'.tr(context: context)),
             ),
@@ -183,11 +198,10 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
         actions:
             isSelectionMode
                 ? [
-                  if (selectedCashFlowIds.length == 1)
-                    IconButton(
-                      onPressed: _onDeleteSelectedCashFlows,
-                      icon: AppIcons.remove,
-                    ),
+                  IconButton(
+                    onPressed: _onDeleteSelectedCashFlows,
+                    icon: AppIcons.remove,
+                  ),
                 ]
                 : [
                   IconButton(onPressed: _onPrint, icon: AppIcons.print),
@@ -223,15 +237,19 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                       itemBuilder: (context, index) {
                         final cashFlow = cashFlows[index];
                         final isSelected = selectedCashFlowIds.contains(
-                          cashFlow.id,
+                          cashFlow.categoryId,
                         );
                         return GestureDetector(
                           onLongPress: () {
-                            _onCashFlowTap(cashFlow.categoryId);
+                            _onCashFlowTap(
+                              cashFlow.id,
+                            ); // To'g'ri ID ishlatilyapti
                           },
                           onTap: () {
                             if (isSelectionMode) {
-                              _onCashFlowTap(cashFlow.categoryId);
+                              _onCashFlowTap(
+                                cashFlow.id,
+                              ); // To'g'ri ID ishlatilyapti
                             } else {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -257,7 +275,15 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                     ),
                   );
                 } else {
-                  return const Center(child: Text('Пусто'));
+                  return Center(
+                    child: CustomRestartButton(
+                      onTap: () {
+                        context.read<CashFlowBloc>().add(
+                          GetCashFlowsEvent(id: widget.categoryId),
+                        );
+                      },
+                    ),
+                  );
                 }
               },
             ),

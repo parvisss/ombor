@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onDelete() {
     List<String> ids = selectedCategoryIds.toList();
     context.read<CategoryBloc>().add(DeleteCategoryEvent(id: ids));
-    context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids));
+    context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids: ids));
     _exitSelectionMode();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

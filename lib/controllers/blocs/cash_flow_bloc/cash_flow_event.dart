@@ -21,6 +21,7 @@ class UpdateCashFlowEvent extends CashFlowEvent {
 
 class DeleteCashFlowEvent extends CashFlowEvent {
   final List<String> ids;
+  final String? categoryId;
 
-  DeleteCashFlowEvent(this.ids);
+  DeleteCashFlowEvent({required this.ids, this.categoryId});
 }

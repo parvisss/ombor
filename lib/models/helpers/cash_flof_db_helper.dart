@@ -147,19 +147,6 @@ class CashFlowDBHelper {
 
   //! Bir nechta jadvalni o'chirish
 
-  Future<void> deleteTables(List<String> tableNames) async {
-    final db = await database;
-
-    for (String tableName in tableNames) {
-      tableName = 'cash_flow_$tableName';
-      try {
-        await db.execute('DROP TABLE IF EXISTS $tableName;');
-      } catch (e) {
-        // ignore: empty_catches
-      }
-    }
-  }
-
   //! Barcha cash flowlarni barcha jadvallardan olish
 
   Future<List<CashFlowModel>> getAllCashFlowsFromAllTables({
@@ -585,6 +572,21 @@ class CashFlowDBHelper {
     } catch (e) {
       print("Error getting total active installment amount: $e");
       return 0.0;
+    }
+  }
+
+  Future<void> deleteTablesByIds(List<String> idsToDelete) async {
+    final db = await database;
+    final List<Map<String, dynamic>> tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+    );
+
+    for (var table in tables) {
+      final tableName = table['name'];
+
+      for (String idToDelete in idsToDelete) {
+        await db.delete(tableName, where: 'id = ?', whereArgs: [idToDelete]);
+      }
     }
   }
 }

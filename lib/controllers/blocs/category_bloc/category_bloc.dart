@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_event.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_state.dart';
+import 'package:ombor/models/helpers/cash_flof_db_helper.dart';
 import 'package:ombor/models/helpers/category_helper.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
@@ -85,6 +86,16 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           event.ids,
           event.isArchived,
         );
+
+        final cashFlowDBHelper = CashFlowDBHelper();
+        for (final categoryId in event.ids) {
+          await cashFlowDBHelper.archiveCashFlow(
+            categoryId,
+            categoryId, // Diqqat: Cash flow IDsi hozircha bo'sh. Butun jadval arxivlanadi/arxivdan chiqariladi.
+            1, // 1 -> archive, 0 -> unarchive
+          );
+        }
+
         final categories = await categoryHelper.fetchCategories(
           isArchive: event.isArchived == 0,
           fromDate: AppGlobals.startDate.value,
@@ -92,7 +103,24 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         );
         emit(CategoryLoadedState(categories));
       } catch (e) {
-        emit(CategoryErrorState("Failed to archive categories"));
+        emit(
+          CategoryErrorState(
+            "Failed to archive categories and related cash flows",
+          ),
+        );
+      }
+    });
+
+    //! nasiyani yangilash
+    on<UpdateInstallmentCategoryEvent>((event, emit) async {
+      emit(CategoryLoadingState());
+      try {
+        await categoryHelper.updateCategory(
+          event.category,
+        ); // Umumiy yangilash metodidan foydalanish mumkin
+        emit(CategoryUpdatedState(event.category));
+      } catch (e) {
+        emit(CategoryErrorState("Failed to update installment category"));
       }
     });
   }

@@ -36,12 +36,6 @@ class CategoryDeletedState extends CategoryState {
   CategoryDeletedState(this.id);
 }
 
-class CategoryBalanceUpdatedState extends CategoryState {
-  final CategoryModel category;
-
-  CategoryBalanceUpdatedState(this.category);
-}
-
 class CategoriesArchivedState extends CategoryState {
   final List<String> ids;
   final int isArchived;

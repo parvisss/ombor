@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/archived_category_bloc/archived_category_event.dart';
 import 'package:ombor/controllers/blocs/archived_category_bloc/archived_category_state.dart';
+import 'package:ombor/models/helpers/cash_flof_db_helper.dart';
 import 'package:ombor/models/helpers/category_helper.dart';
 
 class ArchivedCategoryBloc
@@ -9,6 +10,7 @@ class ArchivedCategoryBloc
   final CategoryHelper categoryHelper;
 
   ArchivedCategoryBloc(this.categoryHelper) : super(ArchivedCategoryInitial()) {
+    //!get
     on<LoadArchivedCategories>((event, emit) async {
       emit(ArchivedCategoryLoading());
       await Future.delayed(Duration(milliseconds: 300));
@@ -40,22 +42,36 @@ class ArchivedCategoryBloc
     //   }
     // });
 
+    //!rearchve
     on<RestoreArchivedCategory>((event, emit) async {
       emit(ArchivedCategoryLoading());
       await Future.delayed(Duration(milliseconds: 300));
       try {
+        //!archive category
         await categoryHelper.archiveMultipleCategories(
           event.ids,
           0,
         ); // 0 -> active
         emit(ArchivedCategoryRestored(event.ids));
 
+        final cashFlowDBHelper = CashFlowDBHelper();
+
+        //!archive cash flow
+        for (final categoryId in event.ids) {
+          await cashFlowDBHelper.archiveCashFlow(categoryId, categoryId, 0);
+        }
+
+        //!get categories back
         final updatedList = await categoryHelper.fetchCategories(
           isArchive: true,
         );
         emit(ArchivedCategoryLoaded(updatedList));
       } catch (e) {
-        emit(ArchivedCategoryError("Failed to restore category"));
+        emit(
+          ArchivedCategoryError(
+            "Failed to restore category and related cash flows",
+          ),
+        );
       }
     });
   }

@@ -15,6 +15,7 @@ import 'package:ombor/views/screens/reports/widgets/pie_cahrt_overall.dart';
 import 'package:ombor/views/screens/reports/widgets/pie_chart_widget.dart';
 import 'package:ombor/views/screens/search/calculator_screen.dart';
 import 'package:ombor/views/screens/search/filter_data_bottom_sheet.dart';
+import 'package:ombor/views/widgets/custom_restart_button.dart';
 import '../../../controllers/blocs/income_cash_flows/income_cash_flow_state.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -87,77 +88,72 @@ class _ReportsScreenState extends State<ReportsScreen> {
         onRefresh: () async {
           _reset();
         },
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              BlocBuilder<IncomeCashFlowBloc, IncomeCashFlowState>(
-                builder: (context, state) {
-                  if (state is IncomeCashFlowLoadingState) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (state is IncomeCashFlowLoadedState &&
-                      state.incomeCashFlows.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 70.0),
-                      child: PieChartWidget(
-                        title: 'income_analysis'.tr(context: context),
-                        cashFlows: state.incomeCashFlows,
-                      ),
-                    );
-                  }
-                  if (state is IncomeCashFlowErrorState) {
-                    return Center(child: Text(state.message));
-                  }
-                  return SizedBox();
-                },
-              ),
-              BlocBuilder<ExpenseCashFlowBloc, ExpenseCashFlowState>(
-                builder: (context, state) {
-                  if (state is ExpenseCashFlowLoadingState) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (state is ExpenseCashFlowLoadedState &&
-                      state.expenseCashFlows.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 70.0),
-                      child: PieChartWidget(
-                        title: 'expense_analysis'.tr(context: context),
-                        cashFlows: state.expenseCashFlows,
-                      ),
-                    );
-                  }
-                  if (state is ExpenseCashFlowErrorState) {
-                    return Center(child: Text(state.message));
-                  }
-                  return SizedBox();
-                },
-              ),
-              BlocBuilder<IncomeExpenseBloc, IncomeExpenseState>(
-                builder: (context, state) {
-                  if (state is IncomeExpenseStatetLoadingState) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (state is IncomeExpenseStateLoadedState &&
-                      state.results.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 70.0),
-                      child: PieCahrtOverall(
-                        title: 'overall_analysis'.tr(context: context),
-                        cashFlows: state.results,
-                      ),
-                    );
-                  }
-                  if (state is IncomeExpenseStateErrorState) {
-                    return Center(child: Text(state.message));
-                  }
+        child: ListView(
+          children: [
+            BlocBuilder<IncomeCashFlowBloc, IncomeCashFlowState>(
+              builder: (context, state) {
+                if (state is IncomeCashFlowLoadedState &&
+                    state.incomeCashFlows.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 70.0),
+                    child: PieChartWidget(
+                      title: 'income_analysis'.tr(context: context),
+                      cashFlows: state.incomeCashFlows,
+                    ),
+                  );
+                }
+                if (state is IncomeCashFlowErrorState) {
+                  return Center(child: Text(state.message));
+                }
+                return SizedBox();
+              },
+            ),
+            BlocBuilder<ExpenseCashFlowBloc, ExpenseCashFlowState>(
+              builder: (context, state) {
+                if (state is ExpenseCashFlowLoadedState &&
+                    state.expenseCashFlows.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 70.0),
+                    child: PieChartWidget(
+                      title: 'expense_analysis'.tr(context: context),
+                      cashFlows: state.expenseCashFlows,
+                    ),
+                  );
+                }
+                if (state is ExpenseCashFlowErrorState) {
+                  return Center(child: Text(state.message));
+                }
+                return SizedBox();
+              },
+            ),
+            BlocBuilder<IncomeExpenseBloc, IncomeExpenseState>(
+              builder: (context, state) {
+                if (state is IncomeExpenseStatetLoadingState) {
                   return SizedBox(
                     height: MediaQuery.of(context).size.height - 200,
-                    child: Center(child: Text('empty'.tr(context: context))),
+                    child: Center(child: CircularProgressIndicator()),
                   );
-                },
-              ),
-            ],
-          ),
+                }
+                if (state is IncomeExpenseStateLoadedState &&
+                    state.results.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 70.0),
+                    child: PieCahrtOverall(
+                      title: 'overall_analysis'.tr(context: context),
+                      cashFlows: state.results,
+                    ),
+                  );
+                }
+                if (state is IncomeExpenseStateErrorState) {
+                  return Center(child: Text(state.message));
+                }
+                return SizedBox(
+                  height: MediaQuery.of(context).size.height - 200,
+                  child: Center(child: CustomRestartButton(onTap: _reset)),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:ombor/models/category_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';

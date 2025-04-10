@@ -6,6 +6,7 @@ class CashFlowModel {
   final int isPositive;
   final num amount;
   final String time;
+  final int isArchived;
 
   CashFlowModel({
     required this.id,
@@ -15,6 +16,8 @@ class CashFlowModel {
     required this.isPositive,
     required this.amount,
     required this.time,
+    this.isArchived = 0,
+    // Boshlang'ich qiymati 0 (false)
   });
 
   factory CashFlowModel.fromMap(Map<String, dynamic> map) {
@@ -26,6 +29,8 @@ class CashFlowModel {
       isPositive: map['isPositive'] as int,
       amount: map['amount'] as num,
       time: map['time'] as String,
+      isArchived: map['isArchived'] as int? ?? 0,
+      // Agar mavjud bo'lmasa, 0
     );
   }
 
@@ -38,6 +43,7 @@ class CashFlowModel {
       'isPositive': isPositive,
       'amount': amount,
       'time': time,
+      'isArchived': isArchived,
     };
   }
 
@@ -49,6 +55,7 @@ class CashFlowModel {
     int? isPositive,
     num? amount,
     String? time,
+    int? isArchived,
   }) {
     return CashFlowModel(
       id: id ?? this.id,
@@ -58,6 +65,7 @@ class CashFlowModel {
       isPositive: isPositive ?? this.isPositive,
       amount: amount ?? this.amount,
       time: time ?? this.time,
+      isArchived: isArchived ?? this.isArchived,
     );
   }
 }

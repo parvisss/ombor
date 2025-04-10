@@ -50,9 +50,8 @@ class ArchiveMultipleCategoriesEvent extends CategoryEvent {
   ArchiveMultipleCategoriesEvent(this.ids, this.isArchived);
 }
 
-// class GetCategoriesByDateEvent extends CategoryEvent {
-//   final DateTime? fromDate;
-//   final DateTime? toDate;
+class UpdateInstallmentCategoryEvent extends CategoryEvent {
+  final CategoryModel category;
 
-//   GetCategoriesByDateEvent({this.fromDate, this.toDate});
-// }
+  UpdateInstallmentCategoryEvent(this.category);
+}

@@ -1,11 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:ombor/models/cash_flow_model.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 
 class ResultHelper {
   static ResultHelper? _instance;
-  static Database? _database;
-  final String _tableName = 'cash_flow';
 
   ResultHelper._internal();
 
@@ -13,184 +10,68 @@ class ResultHelper {
     return _instance ??= ResultHelper._internal();
   }
 
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  //! Bazani yaratish
-  Future<Database> _initDatabase() async {
-    try {
-      final path = await getDatabasesPath();
-      final dbPath = join(path, 'app_cash_flow_database.db');
-      return await openDatabase(
-        dbPath,
-        version: 1,
-        onCreate: (db, version) async {
-          await db.execute('''
-          CREATE TABLE $_tableName (
-            id TEXT PRIMARY KEY,
-            categoryId TEXT,
-            title TEXT,
-            comment TEXT,
-            isPositive INTEGER,
-            amount REAL,
-            time TEXT
-          );
-        ''');
-        },
-      );
-    } catch (e) {
-      print("Error initializing database: $e");
-      rethrow; // xatolikni yana tashlash
-    }
-  }
-
-  //! INSERT(add)
-  Future<void> insertCashFlow(CashFlowModel cashFlow) async {
-    try {
-      final db = await database;
-      await db.insert(
-        _tableName,
-        cashFlow.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  //! SELECT - Yil oralig‘i bo‘yicha filter qilish
-  Future<List<CashFlowModel>> getCashFlows({
+  //! Umumiy (kirim va chiqim) ma'lumotlarni olish
+  Future<List<CashFlowModel>> getCombinedCashFlows({
+    required List<CashFlowModel> allCashFlows,
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    try {
-      final db = await database;
-
-      String query = 'SELECT * FROM $_tableName ';
-      List<dynamic> args = [];
-      List<String> conditions = [];
-
-      //if from date is provided, filer by date
-      if (fromDate != null) {
-        conditions.add('time >= ?');
-        args.add(fromDate.toIso8601String());
-      }
-
-      //if to date is provided, fikter by date
-      if (toDate != null) {
-        conditions.add('AND time <= ?');
-        args.add(toDate.toIso8601String());
-      }
-
-      if (conditions.isNotEmpty) {
-        query += ' WHERE ${conditions.join(' AND ')}';
-      }
-
-      final maps = await db.rawQuery(query, args);
-
-      if (maps.isEmpty) return [];
-
-      return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
-    } catch (e) {
-      print("Error fetching filtered cash flows: $e");
-      return [];
-    }
+    return _filterCashFlowsByDate(allCashFlows, fromDate, toDate);
   }
 
-  Future<List<CashFlowModel>> getIncomeCashFlowsByDate({
+  //! Faqat chiqim ma'lumotlarini olish
+  Future<List<CashFlowModel>> getExpenseCashFlows({
+    required List<CashFlowModel> allCashFlows,
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    try {
-      final db = await database;
-
-      String query = 'SELECT * FROM $_tableName WHERE isPositive = 1';
-      List<dynamic> args = [];
-
-      if (fromDate != null) {
-        query += ' AND time >= ?';
-        args.add(fromDate.toIso8601String());
-      }
-
-      if (toDate != null) {
-        query += ' AND time <= ?';
-        args.add(toDate.toIso8601String());
-      }
-
-      final maps = await db.rawQuery(query, args);
-      return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
-    } catch (e) {
-      print("Error fetching filtered income cash flows: $e");
-      return [];
-    }
+    final filteredByDate = _filterCashFlowsByDate(
+      allCashFlows,
+      fromDate,
+      toDate,
+    );
+    return filteredByDate.where((flow) => flow.isPositive == 0).toList();
   }
 
-  Future<List<CashFlowModel>> getExpenseCashFlowsByDate({
+  //! Faqat kirim ma'lumotlarini olish
+  Future<List<CashFlowModel>> getIncomeCashFlows({
+    required List<CashFlowModel> allCashFlows,
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    try {
-      final db = await database;
+    final filteredByDate = _filterCashFlowsByDate(
+      allCashFlows,
+      fromDate,
+      toDate,
+    );
+    return filteredByDate.where((flow) => flow.isPositive == 1).toList();
+  }
 
-      String query = 'SELECT * FROM $_tableName WHERE isPositive = 0';
-      List<dynamic> args = [];
+  //! Sanaga ko'ra filtrlash uchun yordamchi funksiya
 
-      if (fromDate != null) {
-        query += ' AND time >= ?';
-        args.add(fromDate.toIso8601String());
+  List<CashFlowModel> _filterCashFlowsByDate(
+    List<CashFlowModel> cashFlows,
+    DateTime? fromDate,
+    DateTime? toDate,
+  ) {
+    return cashFlows.where((flow) {
+      DateTime? flowTime;
+      try {
+        flowTime = DateFormat('dd/MM/yyyy').parse(flow.time);
+      } catch (e) {
+        print("Error parsing time: ${flow.time}. Error: $e");
+        return false; // Agar formatlashda xatolik bo'lsa, bu elementni o'tkazib yuboramiz
       }
 
-      if (toDate != null) {
-        query += ' AND time <= ?';
-        args.add(toDate.toIso8601String());
-      }
-
-      final maps = await db.rawQuery(query, args);
-      return List.generate(maps.length, (i) => CashFlowModel.fromMap(maps[i]));
-    } catch (e) {
-      print("Error fetching filtered expense cash flows: $e");
-      return [];
-    }
-  }
-
-  //! UPDATE
-  Future<int> updateCashFlow(CashFlowModel cashFlow) async {
-    try {
-      final db = await database;
-      return await db.update(
-        _tableName,
-        cashFlow.toMap(),
-        where: 'id = ?',
-        whereArgs: [cashFlow.id],
-      );
-    } catch (e) {
-      print("Error updating cash flow: $e");
-      rethrow;
-    }
-  }
-
-  //! DELETE
-  Future<int> deleteCashFlow(String id) async {
-    try {
-      final db = await database;
-      return await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
-    } catch (e) {
-      print("Error deleting cash flow: $e");
-      rethrow;
-    }
-  }
-
-  //! Tozalash
-  Future<void> clearTable() async {
-    try {
-      final db = await database;
-      await db.delete(_tableName);
-    } catch (e) {
-      print("Error clearing table: $e");
-      rethrow;
-    }
+      final isAfterOrEqual =
+          fromDate == null ||
+          flowTime.isAfter(fromDate) ||
+          flowTime.isAtSameMomentAs(fromDate);
+      final isBeforeOrEqual =
+          toDate == null ||
+          flowTime.isBefore(toDate) ||
+          flowTime.isAtSameMomentAs(toDate);
+      return isAfterOrEqual && isBeforeOrEqual;
+    }).toList();
   }
 }

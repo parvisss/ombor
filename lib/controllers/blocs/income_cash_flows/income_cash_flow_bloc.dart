@@ -3,11 +3,13 @@ import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/income_cash_flows/income_cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/income_cash_flows/income_cash_flow_state.dart';
 import 'package:ombor/models/cash_flow_model.dart';
+import 'package:ombor/models/helpers/cash_flof_db_helper.dart';
 import 'package:ombor/models/helpers/result_helper.dart';
 
 class IncomeCashFlowBloc
     extends Bloc<IncomeCashFlowEvent, IncomeCashFlowState> {
   final ResultHelper _resultHelper = ResultHelper();
+  final CashFlowDBHelper cashFlowDBHelper = CashFlowDBHelper();
 
   IncomeCashFlowBloc() : super(IncomeCashFlowInitial()) {
     on<GetIncomeCashFlowsEvent>((
@@ -16,11 +18,17 @@ class IncomeCashFlowBloc
     ) async {
       emit(IncomeCashFlowLoadingState());
       try {
-        List<CashFlowModel> data = await _resultHelper.getIncomeCashFlowsByDate(
-          fromDate: AppGlobals.expenseIncomeStartDate.value,
-          toDate: AppGlobals.expenseIncomeEndDate.value,
-        );
-        emit(IncomeCashFlowLoadedState(data));
+        final List<CashFlowModel> result =
+            await cashFlowDBHelper.getAllCashFlowsFromAllTables();
+        if (result.isNotEmpty) {
+          List<CashFlowModel> data = await _resultHelper.getIncomeCashFlows(
+            allCashFlows: [],
+            fromDate: AppGlobals.expenseIncomeStartDate.value,
+            toDate: AppGlobals.expenseIncomeEndDate.value,
+          );
+          emit(IncomeCashFlowLoadedState(data));
+        }
+        emit(IncomeCashFlowLoadedState([]));
       } catch (e) {
         emit(IncomeCashFlowErrorState(e.toString()));
       }

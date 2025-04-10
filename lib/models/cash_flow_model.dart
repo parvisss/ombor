@@ -37,7 +37,7 @@ class CashFlowModel {
       'comment': comment,
       'isPositive': isPositive,
       'amount': amount,
-      'time':time,
+      'time': time,
     };
   }
 
@@ -57,7 +57,7 @@ class CashFlowModel {
       comment: comment ?? this.comment,
       isPositive: isPositive ?? this.isPositive,
       amount: amount ?? this.amount,
-      time: time??this.time,
+      time: time ?? this.time,
     );
   }
 }

@@ -7,8 +7,6 @@ import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_bloc.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_event.dart';
-import 'package:ombor/controllers/blocs/result_bloc/result_bloc.dart';
-import 'package:ombor/controllers/blocs/result_bloc/result_event.dart';
 import 'package:ombor/extensions/data_time_extension.dart';
 import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/models/category_model.dart';
@@ -93,7 +91,6 @@ class _AddScreenState extends State<AddScreen> {
       context.read<CashFlowBloc>().add(
         GetCashFlowsEvent(id: cashFlow.categoryId),
       );
-      context.read<ResultBloc>().add(AddResultEvent(cashFlow));
 
       Navigator.pop(context);
     }

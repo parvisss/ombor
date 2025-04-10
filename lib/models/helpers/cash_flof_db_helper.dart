@@ -63,6 +63,7 @@ class CashFlowDBHelper {
   //! INSERT
   Future<void> insertCashFlow(String tableName, CashFlowModel cashFlow) async {
     try {
+      tableName = 'cash_flow_$tableName';
       final db = await database;
       await _createTableIfNotExists(tableName);
       await db.insert(tableName, cashFlow.toMap());
@@ -71,39 +72,80 @@ class CashFlowDBHelper {
     }
   }
 
-  //! SELECT
+  //! SELECT (bitta jadvaldan)
   Future<List<CashFlowModel>> getCashFlows(String tableName) async {
     try {
+      tableName = 'cash_flow_$tableName';
+
       final db = await database;
       await _createTableIfNotExists(tableName);
       final List<Map<String, dynamic>> maps = await db.query(tableName);
-      // Ro'yxatni teskari qilish
       List<CashFlowModel> data =
           maps.map((e) => CashFlowModel.fromMap(e)).toList();
-      return data.reversed.toList(); // Teskari tartibda qaytarish
+      return data.reversed.toList();
     } catch (e) {
       return [];
     }
   }
 
-  //! UPDATE
-  Future<int> updateCashFlow(String tableName, CashFlowModel cashFlow) async {
-    try {
-      final db = await database;
-      await _createTableIfNotExists(tableName);
-      return await db.update(
-        tableName,
-        cashFlow.toMap(),
-        where: 'id = ?',
-        whereArgs: [cashFlow.id],
-      );
-    } catch (e) {
-      rethrow;
+  //! Barcha cash flowlarni berilgan category IDlar ro'yxati bo'yicha olish
+  Future<List<CashFlowModel>> getAllCashFlowsByCategories(
+    List<String> categoryIds,
+  ) async {
+    final db = await database;
+    List<CashFlowModel> allCashFlows = [];
+
+    for (final categoryId in categoryIds) {
+      final tableName =
+          'cash_flow_$categoryId'; // Har bir kategoriya uchun alohida jadval nomi
+
+      // Jadval mavjudligini tekshiramiz
+      final exists =
+          Sqflite.firstIntValue(
+            await db.rawQuery(
+              "SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?",
+              [tableName],
+            ),
+          )! >
+          0;
+
+      if (exists) {
+        try {
+          final List<Map<String, dynamic>> maps = await db.query(tableName);
+          allCashFlows.addAll(
+            maps.map((e) => CashFlowModel.fromMap(e)).toList(),
+          );
+        } catch (e) {
+          print("Error getting cash flows from table $tableName: $e");
+          // Jadvaldan ma'lumot olishda xatolik yuz bersa ham,
+          // boshqa jadvallardan ma'lumot olishga harakat qilish uchun davom etamiz.
+        }
+      }
     }
+
+    // Barcha jadvallardan olingan ma'lumotlarni teskari tartibda qaytarish
+    return allCashFlows.reversed.toList();
   }
+
+  // //! UPDATE
+  // Future<int> updateCashFlow(String tableName, CashFlowModel cashFlow) async {
+  //   try {
+  //     final db = await database;
+  //     await _createTableIfNotExists(tableName);
+  //     return await db.update(
+  //       tableName,
+  //       cashFlow.toMap(),
+  //       where: 'id = ?',
+  //       whereArgs: [cashFlow.id],
+  //     );
+  //   } catch (e) {
+  //     rethrow;
+  //   }
+  // }
 
   //! DELETE (bitta jadvaldagi bitta yozuvni o'chirish uchun)
   Future<int> deleteCashFlow(String tableName, String id) async {
+    tableName = 'cash_flow_$tableName';
     try {
       final db = await database;
       await _createTableIfNotExists(tableName);
@@ -116,49 +158,108 @@ class CashFlowDBHelper {
   //! Bir nechta jadvalni o'chirish
   Future<void> deleteTables(List<String> tableNames) async {
     final db = await database;
-    for (final tableName in tableNames) {
+    for (String tableName in tableNames) {
+      tableName = 'cash_flow_$tableName';
+
       try {
         await db.execute('DROP TABLE IF EXISTS $tableName;');
       } catch (e) {
-        // Har bir jadvalni o'chirishda xatolik yuzaga kelishi mumkin,
-        // lekin boshqa jadvallarni o'chirishga harakat qilish uchun davom etamiz.
         print("Error dropping table $tableName: $e");
       }
     }
   }
 
-  //! Ixtiyoriy jadvalni tozalash (barcha yozuvlarni o'chirish)
-  Future<void> clearTable(String tableName) async {
-    try {
-      final db = await database;
-      await _createTableIfNotExists(tableName);
-      await db.delete(tableName);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<List<CashFlowModel>> searchAllTables(String query) async {
+  //! Barcha cash flowlarni barcha jadvallardan olish
+  Future<List<CashFlowModel>> getAllCashFlowsFromAllTables() async {
     try {
       final db = await database;
 
-      // Barcha jadval nomlarini olish (sqLite'da buni qilish uchun sqlite_master jadvalidan foydalanamiz)
+      // 'cash_flow_' bilan boshlanuvchi barcha jadvallarni olish
       final List<Map<String, dynamic>> tables = await db.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table';",
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
       );
 
       List<CashFlowModel> allResults = [];
 
-      // Har bir jadval uchun qidiruvni amalga oshiramiz
       for (var table in tables) {
         final tableName = table['name'];
 
-        // Jadvalda kerakli ustunlar borligini tekshiramiz (title, comment, amount)
+        // Jadvalda kerakli ustunlar borligini tekshiramiz (title, comment, amount - optional)
         final List<Map<String, dynamic>> columns = await db.rawQuery(
           "PRAGMA table_info($tableName);",
         );
 
-        // Ustunlar mavjudligini tekshiramiz
+        bool hasId = false;
+        bool hasCategoryId = false;
+        bool hasTitle = false;
+        // ignore: unused_local_variable
+        bool hasComment = false;
+        bool hasIsPositive = false;
+        bool hasAmount = false;
+        bool hasTime = false;
+
+        for (var column in columns) {
+          if (column['name'] == 'id') hasId = true;
+          if (column['name'] == 'categoryId') hasCategoryId = true;
+          if (column['name'] == 'title') hasTitle = true;
+          if (column['name'] == 'comment') hasComment = true;
+          if (column['name'] == 'isPositive') hasIsPositive = true;
+          if (column['name'] == 'amount') hasAmount = true;
+          if (column['name'] == 'time') hasTime = true;
+        }
+
+        // Agar asosiy ustunlar mavjud bo'lsa, ma'lumotlarni olamiz
+        if (hasId &&
+            hasCategoryId &&
+            hasTitle &&
+            hasIsPositive &&
+            hasAmount &&
+            hasTime) {
+          final List<Map<String, dynamic>> maps = await db.query(tableName);
+          allResults.addAll(maps.map((e) => CashFlowModel.fromMap(e)).toList());
+        } else {
+          print(
+            "Warning: Table $tableName does not have all required columns for CashFlowModel.",
+          );
+        }
+      }
+
+      return allResults;
+    } catch (e) {
+      print("Error getting all cash flows from all tables: $e");
+      return [];
+    }
+  }
+
+  // //! Ixtiyoriy jadvalni tozalash (barcha yozuvlarni o'chirish)
+  // Future<void> clearTable(String tableName) async {
+  //   try {
+  //     final db = await database;
+  //     await _createTableIfNotExists(tableName);
+  //     await db.delete(tableName);
+  //   } catch (e) {
+  //     rethrow;
+  //   }
+  // }
+
+  //!search
+  Future<List<CashFlowModel>> searchAllTables(String query) async {
+    try {
+      final db = await database;
+
+      final List<Map<String, dynamic>> tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+      );
+
+      List<CashFlowModel> allResults = [];
+
+      for (var table in tables) {
+        final tableName = table['name'];
+
+        final List<Map<String, dynamic>> columns = await db.rawQuery(
+          "PRAGMA table_info($tableName);",
+        );
+
         bool hasTitle = false;
         bool hasComment = false;
         bool hasAmount = false;
@@ -169,26 +270,22 @@ class CashFlowDBHelper {
           if (column['name'] == 'amount') hasAmount = true;
         }
 
-        // Agar ustunlardan biri bo'lmasa, qidiruvni o'tkazmaymiz
         if (hasTitle || hasComment || hasAmount) {
-          // Qidiruv so'rovi (title, comment, amount bo'yicha)
           final List<Map<String, dynamic>> maps = await db.query(
             tableName,
             where:
                 'LOWER(title) LIKE ? OR LOWER(comment) LIKE ? OR CAST(amount AS TEXT) LIKE ?',
             whereArgs: [
-              '%${query.toLowerCase()}%', // title uchun
-              '%${query.toLowerCase()}%', // comment uchun
-              '%$query%', // amount uchun
+              '%${query.toLowerCase()}%',
+              '%${query.toLowerCase()}%',
+              '%$query%',
             ],
           );
-
-          // Olingan natijalarni ro'yxatga qo'shamiz
           allResults.addAll(maps.map((e) => CashFlowModel.fromMap(e)).toList());
         }
       }
 
-      return allResults; // Barcha jadvaldan olingan natijalar
+      return allResults;
     } catch (e) {
       return [];
     }

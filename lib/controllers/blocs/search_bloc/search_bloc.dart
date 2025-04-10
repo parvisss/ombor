@@ -16,22 +16,32 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(SearchLoading()); // Qidiruvni boshlash holatini ko'rsatish
 
       try {
-        final List<CashFlowModel> result1 = await cashFlowDBHelper.searchAllTables(event.query);
-        final List<CategoryModel> result2 = await categoryHelper.searchCategories(event.query);
+        final List<CashFlowModel> result1 = await cashFlowDBHelper
+            .searchAllTables(event.query);
+        final List<CategoryModel> result2 = await categoryHelper
+            .searchCategories(event.query);
 
         // Ikkala natijani birlashtirish
         List<SearchResult> combinedResults = [];
 
         for (var cashFlow in result1) {
-          combinedResults.add(SearchResult(type: SearchResultType.cashFlow, data: cashFlow));
+          combinedResults.add(
+            SearchResult(type: SearchResultType.cashFlow, data: cashFlow),
+          );
         }
         for (var category in result2) {
-          combinedResults.add(SearchResult(type: SearchResultType.category, data: category));
+          combinedResults.add(
+            SearchResult(type: SearchResultType.category, data: category),
+          );
         }
 
-        emit(SearchLoaded(combinedResults)); // Birlashtirilgan natijani yuborish
+        emit(
+          SearchLoaded(combinedResults),
+        ); // Birlashtirilgan natijani yuborish
       } catch (e) {
-        emit(SearchError("Qidiruvda xatolik yuz berdi.")); // Xato bo'lsa, xabarni ko'rsatish
+        emit(
+          SearchError("Qidiruvda xatolik yuz berdi."),
+        ); // Xato bo'lsa, xabarni ko'rsatish
       }
     });
   }

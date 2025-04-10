@@ -68,7 +68,6 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           event.amount,
           event.isIncrement,
         );
-
         final categories = await categoryHelper.fetchCategories(
           isArchive: event.isArchive,
         );
@@ -111,17 +110,17 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       }
     });
 
-    //! nasiyani yangilash
-    on<UpdateInstallmentCategoryEvent>((event, emit) async {
-      emit(CategoryLoadingState());
-      try {
-        await categoryHelper.updateCategory(
-          event.category,
-        ); // Umumiy yangilash metodidan foydalanish mumkin
-        emit(CategoryUpdatedState(event.category));
-      } catch (e) {
-        emit(CategoryErrorState("Failed to update installment category"));
-      }
-    });
+    // //! nasiyani yangilash
+    // on<UpdateInstallmentCategoryEvent>((event, emit) async {
+    //   emit(CategoryLoadingState());
+    //   try {
+    //     await categoryHelper.updateCategory(
+    //       event.category,
+    //     ); // Umumiy yangilash metodidan foydalanish mumkin
+    //     emit(CategoryUpdatedState(event.category));
+    //   } catch (e) {
+    //     emit(CategoryErrorState("Failed to update installment category"));
+    //   }
+    // });
   }
 }

@@ -8,12 +8,12 @@ class InstallmentBloc extends Bloc<InstallmentEvent, InstallmentState> {
     final CashFlowDBHelper cashFlowDBHelper = CashFlowDBHelper();
 
     //! Get Installments
-    on<GetInstallmentsEvent>((event, emit) async {
+    on<GetInstallmentTotlaBalanceEvent>((event, emit) async {
       emit(InstallmentLoadingState());
       await Future.delayed(Duration(milliseconds: 300));
       try {
-        // final installments = await cashFlowDBHelper.getTotalInstallmentAmount();
-        // emit(InstallmentLoadedState(installmentBalance: installments));
+        final installments = await cashFlowDBHelper.getTotalInstallmentAmount();
+        emit(InstallmentLoadedState(installmentBalance: installments));
       } catch (e) {
         emit(InstallmentErrorState("Failed to load installments"));
       }

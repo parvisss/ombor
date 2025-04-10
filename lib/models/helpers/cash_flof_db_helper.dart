@@ -24,7 +24,6 @@ class CashFlowDBHelper {
   }
 
   //! Bazani yaratish
-
   Future<Database> _initDatabase() async {
     try {
       final path = await getDatabasesPath();
@@ -33,12 +32,11 @@ class CashFlowDBHelper {
 
       return await openDatabase(dbPath, version: 1);
     } catch (e) {
-      rethrow; // xatolikni yana tashlash
+      rethrow;
     }
   }
 
   //! Jadval bor yoki yo'qligini tekshiradi, bo'lmasa yaratadi
-
   Future<void> _createTableIfNotExists(String tableName) async {
     try {
       final db = await database;
@@ -47,7 +45,6 @@ class CashFlowDBHelper {
           Sqflite.firstIntValue(
             await db.rawQuery(
               "SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?",
-
               [tableName],
             ),
           )! >
@@ -55,28 +52,18 @@ class CashFlowDBHelper {
 
       if (!exists) {
         await db.execute('''
-
-CREATE TABLE $tableName (
-
-id TEXT PRIMARY KEY,
-
-categoryId TEXT,
-
-title TEXT,
-
-comment TEXT,
-
-isPositive INTEGER,
-
-amount REAL,
-
-time TEXT,
-
-isArchived INTEGER DEFAULT 0
-
-);
-
-''');
+            CREATE TABLE $tableName (
+              id TEXT PRIMARY KEY,
+              categoryId TEXT,
+              title TEXT,
+              comment TEXT,
+              isPositive INTEGER,
+              amount REAL,
+              time TEXT,
+              isArchived INTEGER DEFAULT 0,
+              isInstallment INTEGER DEFAULT 0
+            );
+          ''');
       }
     } catch (e) {
       rethrow;
@@ -84,7 +71,6 @@ isArchived INTEGER DEFAULT 0
   }
 
   //! INSERT
-
   Future<void> insertCashFlow(String tableName, CashFlowModel cashFlow) async {
     try {
       tableName = 'cash_flow_$tableName';
@@ -138,35 +124,26 @@ isArchived INTEGER DEFAULT 0
 
   // //! UPDATE
 
-  // Future<int> updateCashFlow(String tableName, CashFlowModel cashFlow) async {
+  Future updateCashFlow(String tableName, CashFlowModel cashFlow) async {
+    tableName = 'cash_flow_$tableName';
 
-  // tableName = 'cash_flow_$tableName';
+    try {
+      final db = await database;
 
-  // try {
+      await _createTableIfNotExists(tableName);
+      await db.update(
+        tableName,
 
-  // final db = await database;
+        cashFlow.toMap(),
 
-  // await _createTableIfNotExists(tableName);
+        where: 'id = ?',
 
-  // return await db.update(
-
-  // tableName,
-
-  // cashFlow.toMap(),
-
-  // where: 'id = ?',
-
-  // whereArgs: [cashFlow.id],
-
-  // );
-
-  // } catch (e) {
-
-  // rethrow;
-
-  // }
-
-  // }
+        whereArgs: [cashFlow.id],
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   //! Bir nechta jadvalni o'chirish
 
@@ -175,12 +152,11 @@ isArchived INTEGER DEFAULT 0
 
     for (String tableName in tableNames) {
       tableName = 'cash_flow_$tableName';
-
       try {
         await db.execute('DROP TABLE IF EXISTS $tableName;');
-
+      } catch (e) {
         // ignore: empty_catches
-      } catch (e) {}
+      }
     }
   }
 
@@ -372,6 +348,178 @@ isArchived INTEGER DEFAULT 0
       await db.update(tableName, {'isArchived': archive});
     } catch (e) {
       rethrow;
+    }
+  }
+
+  //! Barcha jadvallardan isInstallment=1 bo'lgan cash flowlarni olish
+  Future<List<CashFlowModel>> getAllInstallmentCashFlows() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+      );
+
+      List<CashFlowModel> installmentResults = [];
+
+      for (var table in tables) {
+        final tableName = table['name'];
+
+        final List<Map<String, dynamic>> columns = await db.rawQuery(
+          "PRAGMA table_info($tableName);",
+        );
+
+        bool hasId = false;
+        bool hasCategoryId = false;
+        bool hasTitle = false;
+        bool hasIsPositive = false;
+        bool hasAmount = false;
+        bool hasTime = false;
+        bool hasIsInstallmentColumn = false;
+
+        for (var column in columns) {
+          if (column['name'] == 'id') hasId = true;
+          if (column['name'] == 'categoryId') hasCategoryId = true;
+          if (column['name'] == 'title') hasTitle = true;
+          if (column['name'] == 'isPositive') hasIsPositive = true;
+          if (column['name'] == 'amount') hasAmount = true;
+          if (column['name'] == 'time') hasTime = true;
+          if (column['name'] == 'isInstallment') hasIsInstallmentColumn = true;
+        }
+
+        if (hasId &&
+            hasCategoryId &&
+            hasTitle &&
+            hasIsPositive &&
+            hasAmount &&
+            hasTime &&
+            hasIsInstallmentColumn) {
+          final List<Map<String, dynamic>> maps = await db.query(
+            tableName,
+            where: 'isInstallment = ?',
+            whereArgs: [1],
+          );
+          installmentResults.addAll(
+            maps.map((e) => CashFlowModel.fromMap(e)).toList(),
+          );
+        }
+      }
+
+      return installmentResults;
+    } catch (e) {
+      print("Error getting all installment cash flows: $e");
+      return [];
+    }
+  }
+
+  //! Barcha installmentlarning umumiy narhini topish
+  Future<double> getTotalInstallmentAmount() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+      );
+
+      double totalInstallmentAmount = 0.0;
+
+      for (var table in tables) {
+        final tableName = table['name'];
+
+        final List<Map<String, dynamic>> columns = await db.rawQuery(
+          "PRAGMA table_info($tableName);",
+        );
+
+        bool hasIsInstallmentColumn = false;
+        bool hasAmountColumn = false;
+
+        for (var column in columns) {
+          if (column['name'] == 'isInstallment') hasIsInstallmentColumn = true;
+          if (column['name'] == 'amount') hasAmountColumn = true;
+        }
+
+        if (hasIsInstallmentColumn && hasAmountColumn) {
+          final List<Map<String, dynamic>> maps = await db.query(
+            tableName,
+            columns: ['amount'],
+            where: 'isInstallment = ?',
+            whereArgs: [1],
+          );
+
+          for (var map in maps) {
+            totalInstallmentAmount += (map['amount'] as num).toDouble();
+          }
+        }
+      }
+
+      return totalInstallmentAmount;
+    } catch (e) {
+      print("Error getting total installment amount: $e");
+      return 0.0;
+    }
+  }
+
+  //! Archive da bo'lmagan va installment bo'lgan cash flow'larning umumiy narhini topish
+  Future<double> getTotalActiveInstallmentAmount() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+      );
+
+      double totalActiveInstallmentAmount = 0.0;
+
+      for (var table in tables) {
+        final tableName = table['name'];
+
+        final List<Map<String, dynamic>> columns = await db.rawQuery(
+          "PRAGMA table_info($tableName);",
+        );
+
+        bool hasIsInstallmentColumn = false;
+        bool hasAmountColumn = false;
+        bool hasIsArchivedColumn =
+            false; // isArchived ustunini tekshirish uchun
+
+        for (var column in columns) {
+          if (column['name'] == 'isInstallment') hasIsInstallmentColumn = true;
+          if (column['name'] == 'amount') hasAmountColumn = true;
+          if (column['name'] == 'isArchived') hasIsArchivedColumn = true;
+        }
+
+        if (hasIsInstallmentColumn && hasAmountColumn) {
+          if (hasIsArchivedColumn) {
+            final List<Map<String, dynamic>> maps = await db.query(
+              tableName,
+              columns: ['amount'],
+              where: 'isInstallment = ? AND isArchived = ?',
+              whereArgs: [
+                0,
+                0,
+              ], // isInstallment = 1 (installment) va isArchived = 0 (faol)
+            );
+
+            for (var map in maps) {
+              totalActiveInstallmentAmount += (map['amount'] as num).toDouble();
+            }
+          } else {
+            // Agar jadvalda isArchived ustuni bo'lmasa, barcha installmentlarni qo'shamiz (oldingi mantiq)
+            final List<Map<String, dynamic>> maps = await db.query(
+              tableName,
+              columns: ['amount'],
+              where: 'isInstallment = ?',
+              whereArgs: [1],
+            );
+
+            for (var map in maps) {
+              totalActiveInstallmentAmount += (map['amount'] as num).toDouble();
+            }
+          }
+        }
+      }
+
+      return totalActiveInstallmentAmount;
+    } catch (e) {
+      print("Error getting total active installment amount: $e");
+      return 0.0;
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ombor/controllers/blocs/installment_bloc/installment_bloc.dart';
 import 'package:ombor/views/screens/auth/password_screen.dart';
 import 'package:ombor/controllers/blocs/archived_category_bloc/archived_category_bloc.dart';
 import 'package:ombor/controllers/blocs/balance_bloc/balance_bloc.dart';
@@ -55,6 +56,7 @@ class MainApp extends StatelessWidget {
           BlocProvider(create: (context) => IncomeCashFlowBloc()),
           BlocProvider(create: (context) => ExpenseCashFlowBloc()),
           BlocProvider(create: (context) => IncomeExpenseBloc()),
+          BlocProvider(create: (context) => InstallmentBloc()),
           BlocProvider(
             create: (context) => ArchivedCategoryBloc(CategoryHelper()),
           ),

@@ -34,19 +34,20 @@ class CashFlowBloc extends Bloc<CashFlowEvent, CashFlowState> {
       }
     });
 
-    // //! Update Cash Flow
-    // on<UpdateCashFlowEvent>((event, emit) async {
-    //   emit(CashFlowLoadingState());
-    //   try {
-    //     await cashFlowHelper.updateCashFlow(
-    //       event.cashFlow.categoryId,
-    //       event.cashFlow,
-    //     );
-    //     emit(CashFlowUpdatedState(event.cashFlow));
-    //   } catch (e) {
-    //     emit(CashFlowErrorState("Failed to update cash flow"));
-    //   }
-    // });
+    //! Update Cash Flow
+    on<UpdateCashFlowEvent>((event, emit) async {
+      emit(CashFlowLoadingState());
+      try {
+        await cashFlowHelper.updateCashFlow(
+          event.cashFlow.categoryId,
+          event.cashFlow,
+        );
+
+        emit(CashFlowUpdatedState(event.cashFlow));
+      } catch (e) {
+        emit(CashFlowErrorState("Failed to update cash flow"));
+      }
+    });
 
     //! Delete Cash Flow
     on<DeleteCashFlowEvent>((event, emit) async {

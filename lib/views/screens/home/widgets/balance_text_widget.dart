@@ -1,12 +1,17 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:ombor/utils/app_text_styles.dart'; // O'zingizning stil faylingizga moslashtiring
 
 class BalanceTextWidget extends StatelessWidget {
   final num balance;
+  final bool? isIntallment;
 
   // Constructor orqali balance qiymatini qabul qilamiz
-  const BalanceTextWidget({super.key, required this.balance});
+  const BalanceTextWidget({
+    super.key,
+    required this.balance,
+    this.isIntallment,
+  });
 
   // Formatlash uchun yordamchi funksiya
   String _formatBalance(num balance) {
@@ -28,15 +33,16 @@ class BalanceTextWidget extends StatelessWidget {
     String formattedBalance = _formatBalance(balance);
 
     return Text(
-      "${balance > 0 ? "+" : ''} $formattedBalance Uzs",
+      "${isIntallment != null && !isIntallment! && balance >= 0 ? '+' : ''} $formattedBalance Uzs",
       style:
-          balance > 0
+          isIntallment != null && isIntallment!
               ? AppTextStyles
-                  .bodyLargePositive // Musbat balance uchun stil
+                  .bodyLarge // Nasiya to'lovlari uchun alohida stil
+              : balance > 0
+              ? AppTextStyles.bodyLargePositive
               : balance < 0
-              ? AppTextStyles
-                  .bodyLargeNegative // Manfiy balance uchun stil
-              : AppTextStyles.bodyLarge, // Nol balance uchun stil
+              ? AppTextStyles.bodyLargeNegative
+              : AppTextStyles.bodyLarge,
     );
   }
 }

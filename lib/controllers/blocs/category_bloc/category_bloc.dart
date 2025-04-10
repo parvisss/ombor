@@ -7,7 +7,7 @@ import 'package:ombor/models/helpers/category_helper.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   final CategoryHelper categoryHelper = CategoryHelper();
-
+  final CashFlowDBHelper cashFlowDBHelper = CashFlowDBHelper();
   CategoryBloc() : super(CategoryInitialState()) {
     //!add
     on<AddCategoryEvent>((event, emit) async {
@@ -43,6 +43,12 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       try {
         await categoryHelper.updateCategory(event.category);
         emit(CategoryUpdatedState(event.category));
+        final categories = await categoryHelper.fetchCategories(
+          isArchive: false,
+          fromDate: AppGlobals.startDate.value,
+          toDate: AppGlobals.endDate.value,
+        );
+        emit(CategoryLoadedState(categories));
       } catch (e) {
         emit(CategoryErrorState("Failed to update category"));
       }
@@ -54,6 +60,12 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       try {
         await categoryHelper.deleteCategory(event.id);
         emit(CategoryDeletedState(event.id));
+        final categories = await categoryHelper.fetchCategories(
+          isArchive: false,
+          fromDate: AppGlobals.startDate.value,
+          toDate: AppGlobals.endDate.value,
+        );
+        emit(CategoryLoadedState(categories));
       } catch (e) {
         emit(CategoryErrorState("Failed to delete category"));
       }
@@ -63,12 +75,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     on<ChangeBalanceEvent>((event, emit) async {
       emit(CategoryLoadingState());
       try {
-        await categoryHelper.changeBalance(
-          event.id,
-          event.amount,
-          event.isIncrement,
+        final double amount = await cashFlowDBHelper.getCategoryCashFlowAmount(
+          categoryId: event.id,
         );
-
+        await categoryHelper.changeBalance(event.id, amount, event.isIncrement);
         final categories = await categoryHelper.fetchCategories(
           isArchive: event.isArchive,
         );
@@ -108,19 +118,6 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             "Failed to archive categories and related cash flows",
           ),
         );
-      }
-    });
-
-    //! nasiyani yangilash
-    on<UpdateInstallmentCategoryEvent>((event, emit) async {
-      emit(CategoryLoadingState());
-      try {
-        await categoryHelper.updateCategory(
-          event.category,
-        ); // Umumiy yangilash metodidan foydalanish mumkin
-        emit(CategoryUpdatedState(event.category));
-      } catch (e) {
-        emit(CategoryErrorState("Failed to update installment category"));
       }
     });
   }

@@ -125,30 +125,12 @@ class CategoryHelper {
   //!change balance
   Future<void> changeBalance(String id, double amount, bool isIncrement) async {
     final db = await database;
-
-    // Fetch the current balance
-    var result = await db.query(
+    await db.update(
       _tableName,
-      columns: ['balance'],
+      {'balance': amount},
       where: 'id = ?',
       whereArgs: [id],
     );
-
-    if (result.isNotEmpty) {
-      double currentBalance = result.first['balance'] as double;
-
-      // Update the balance based on isIncrement flag
-      double newBalance =
-          isIncrement ? currentBalance + amount : currentBalance - amount;
-
-      // Update the record with the new balance
-      await db.update(
-        _tableName,
-        {'balance': newBalance},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    }
   }
 
   //! Get total balance of all categories

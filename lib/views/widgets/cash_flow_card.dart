@@ -19,8 +19,10 @@ class CashFlowCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(cashFlow.time, style: AppTextStyles.labelSmall),
-          BalanceTextWidget(balance: cashFlow.amount),
-          Text(cashFlow.isArchived.toString(), style: AppTextStyles.labelSmall),
+          BalanceTextWidget(
+            balance: cashFlow.amount,
+            isIntallment: cashFlow.isInstallment == 1,
+          ),
         ],
       ),
     );

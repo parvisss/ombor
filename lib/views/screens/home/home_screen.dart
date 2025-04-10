@@ -10,11 +10,14 @@ import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_bloc.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_event.dart';
 import 'package:ombor/controllers/blocs/category_bloc/category_state.dart';
+import 'package:ombor/controllers/blocs/installment_bloc/installment_bloc.dart';
+import 'package:ombor/controllers/blocs/installment_bloc/installment_event.dart';
 import 'package:ombor/models/category_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_text_styles.dart';
 import 'package:ombor/views/screens/home/add_screen.dart';
 import 'package:ombor/views/screens/home/cash_flow_screen.dart';
+import 'package:ombor/views/screens/home/widgets/installment_balance_widget.dart';
 import 'package:ombor/views/screens/home/widgets/overal_balance_widget.dart';
 import 'package:ombor/views/screens/search/calculator_screen.dart';
 import 'package:ombor/views/screens/search/filter_data_bottom_sheet.dart';
@@ -48,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _reset() {
     context.read<CategoryBloc>().add(GetCategoriesEvent(isArchive: false));
     context.read<BalanceBloc>().add(GetTotalBalanceEvent());
+    context.read<InstallmentBloc>().add(GetInstallmentTotlaBalanceEvent());
     selectedCategoryIds.clear();
     isSelectionMode = false;
   }
@@ -87,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onDelete() {
     List<String> ids = selectedCategoryIds.toList();
     context.read<CategoryBloc>().add(DeleteCategoryEvent(id: ids));
-    context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids));
+    context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids: ids));
     _exitSelectionMode();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -268,6 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           OveralBalanceWidget(),
+          InstallmentBalanceWidget(),
           Container(
             color: AppColors.backgroundSecondary,
             width: double.infinity,

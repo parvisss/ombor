@@ -13,14 +13,15 @@ class GetCashFlowsEvent extends CashFlowEvent {
   GetCashFlowsEvent({required this.id});
 }
 
-// class UpdateCashFlowEvent extends CashFlowEvent {
-//   final CashFlowModel cashFlow;
+class UpdateCashFlowEvent extends CashFlowEvent {
+  final CashFlowModel cashFlow;
 
-//   UpdateCashFlowEvent(this.cashFlow);
-// }
+  UpdateCashFlowEvent(this.cashFlow);
+}
 
 class DeleteCashFlowEvent extends CashFlowEvent {
   final List<String> ids;
+  final String? categoryId;
 
-  DeleteCashFlowEvent(this.ids);
+  DeleteCashFlowEvent({required this.ids, this.categoryId});
 }

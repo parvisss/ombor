@@ -20,6 +20,7 @@ class CashFlowCard extends StatelessWidget {
         children: [
           Text(cashFlow.time, style: AppTextStyles.labelSmall),
           BalanceTextWidget(balance: cashFlow.amount),
+          Text(cashFlow.isArchived.toString(), style: AppTextStyles.labelSmall),
         ],
       ),
     );

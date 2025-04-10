@@ -7,8 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_state.dart';
-import 'package:ombor/controllers/blocs/category_bloc/category_bloc.dart';
-import 'package:ombor/controllers/blocs/category_bloc/category_event.dart';
 import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_text_styles.dart';

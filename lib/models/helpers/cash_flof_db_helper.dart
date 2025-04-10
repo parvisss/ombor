@@ -458,7 +458,7 @@ class CashFlowDBHelper {
   }
 
   //! Archive da bo'lmagan va installment bo'lgan cash flow'larning umumiy narhini topish
-  Future<double> getTotalActiveInstallmentAmount() async {
+  Future<double> getTotalCashFlowAmount() async {
     try {
       final db = await database;
       final List<Map<String, dynamic>> tables = await db.rawQuery(
@@ -494,6 +494,71 @@ class CashFlowDBHelper {
               whereArgs: [
                 0,
                 0,
+              ], // isInstallment = 1 (installment) va isArchived = 0 (faol)
+            );
+
+            for (var map in maps) {
+              totalActiveInstallmentAmount += (map['amount'] as num).toDouble();
+            }
+          } else {
+            // Agar jadvalda isArchived ustuni bo'lmasa, barcha installmentlarni qo'shamiz (oldingi mantiq)
+            final List<Map<String, dynamic>> maps = await db.query(
+              tableName,
+              columns: ['amount'],
+              where: 'isInstallment = ?',
+              whereArgs: [1],
+            );
+
+            for (var map in maps) {
+              totalActiveInstallmentAmount += (map['amount'] as num).toDouble();
+            }
+          }
+        }
+      }
+
+      return totalActiveInstallmentAmount;
+    } catch (e) {
+      print("Error getting total active installment amount: $e");
+      return 0.0;
+    }
+  }
+
+  Future<double> getCategoryCashFlowAmount({required String categoryId}) async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+      );
+
+      double totalActiveInstallmentAmount = 0.0;
+
+      for (var table in tables) {
+        final tableName = table['name'];
+
+        final List<Map<String, dynamic>> columns = await db.rawQuery(
+          "PRAGMA table_info($tableName);",
+        );
+
+        bool hasAmountColumn = false;
+        bool hasIsArchivedColumn =
+            false; // isArchived ustunini tekshirish uchun
+        bool hasCategoryIdColumn = false;
+        for (var column in columns) {
+          if (column['name'] == 'amount') hasAmountColumn = true;
+          if (column['name'] == 'isArchived') hasIsArchivedColumn = true;
+          if (column['name'] == 'categoryId') hasCategoryIdColumn = true;
+        }
+
+        if (hasAmountColumn && hasCategoryIdColumn) {
+          if (hasIsArchivedColumn) {
+            final List<Map<String, dynamic>> maps = await db.query(
+              tableName,
+              columns: ['amount'],
+              where: 'isInstallment = ? AND isArchived = ? AND categoryId = ?',
+              whereArgs: [
+                0,
+                0,
+                categoryId,
               ], // isInstallment = 1 (installment) va isArchived = 0 (faol)
             );
 

@@ -1,20 +1,21 @@
 import 'package:bloc/bloc.dart';
 import 'package:ombor/controllers/blocs/balance_bloc/balance_event.dart';
 import 'package:ombor/controllers/blocs/balance_bloc/balance_state.dart';
-import 'package:ombor/models/helpers/category_helper.dart';
+import 'package:ombor/models/helpers/cash_flof_db_helper.dart';
 
 class BalanceBloc extends Bloc<BalanceEvent, BalanceState> {
-  final CategoryHelper categoryHelper = CategoryHelper();
-
   BalanceBloc() : super(BalanceInitialState()) {
-    //! get total balance
+    final CashFlowDBHelper cashFlowDBHelper = CashFlowDBHelper();
+
+    //! Get Installments
     on<GetTotalBalanceEvent>((event, emit) async {
       emit(BalanceLoadingState());
+      await Future.delayed(Duration(milliseconds: 300));
       try {
-        final totalBalance = await categoryHelper.getTotalBalance();
-        emit(BalanceLoadedState(totalBalance));
+        final balance = await cashFlowDBHelper.getTotalCashFlowAmount();
+        emit(BalanceLoadedState(balance));
       } catch (e) {
-        emit(BalanceErrorState("Failed to calculate total balance"));
+        emit(BalanceErrorState(e.toString()));
       }
     });
   }

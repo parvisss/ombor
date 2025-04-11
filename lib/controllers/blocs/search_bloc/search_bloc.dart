@@ -16,8 +16,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(SearchLoading()); // Qidiruvni boshlash holatini ko'rsatish
 
       try {
-        final List<CashFlowModel> result1 = await cashFlowDBHelper
-            .searchAllTables(event.query);
+        final List<CashFlowModel> allCashFlows =
+            await cashFlowDBHelper.getAllCashFlowsFromAllTablesUnfiltered();
+        final List<CashFlowModel> result1 = cashFlowDBHelper
+            .searchCashFlowsFromList(
+              cashFlows: allCashFlows,
+              query: event.query,
+            );
         final List<CategoryModel> result2 = await categoryHelper
             .searchCategories(event.query);
 

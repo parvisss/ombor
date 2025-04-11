@@ -74,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //!archive
   void _onArchive() {
     List<String> selectedItemsIds = selectedCategoryIds.toList();
     context.read<CategoryBloc>().add(
@@ -88,19 +89,47 @@ class _HomeScreenState extends State<HomeScreen> {
     _exitSelectionMode();
   }
 
+  //!delet
   void _onDelete() {
-    List<String> ids = selectedCategoryIds.toList();
-    context.read<CategoryBloc>().add(DeleteCategoryEvent(id: ids));
-    context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids: ids));
-    _exitSelectionMode();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('categories_deleted_successfully'.tr(context: context)),
-      ),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('confirm_delete_title'.tr(context: context)),
+          actions: <Widget>[
+            //no
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('no'.tr(context: context)),
+            ),
+
+            //yes
+            TextButton(
+              onPressed: () {
+                List<String> ids = selectedCategoryIds.toList();
+                context.read<CategoryBloc>().add(DeleteCategoryEvent(id: ids));
+                context.read<CashFlowBloc>().add(DeleteCashFlowEvent(ids: ids));
+                _exitSelectionMode();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'categories_deleted_successfully'.tr(context: context),
+                    ),
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: Text('yes'.tr(context: context)),
+            ),
+          ],
+        );
+      },
     );
-    Navigator.of(context).pop();
   }
 
+  //!print
   void _onPrint() async {
     // ResultBlocdan ma'lumotlarni olish
     final state = context.read<CategoryBloc>().state;
@@ -148,6 +177,51 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  //!calculate
+  void _onCalculate() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (ctx) => CalculatorScreen()));
+  }
+
+  //!filter
+  void _onFilter() {
+    final parentContext = context; // yuqorida saqlab qo‘yamiz
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return FilterDateBottomSheet(
+          startDate: AppGlobals.startDate,
+          endDate: AppGlobals.endDate,
+          onStartDateSelected: (pickedDate) {
+            if (pickedDate != null) {
+              AppGlobals.startDate.value = pickedDate;
+            }
+          },
+          onEndDateSelected: (pickedDate) {
+            if (pickedDate != null) {
+              AppGlobals.endDate.value = pickedDate;
+            }
+          },
+          onFilter: () {
+            parentContext.read<CategoryBloc>().add(
+              GetCategoriesEvent(isArchive: false),
+            );
+            Navigator.pop(context); // BottomSheet ni yopish
+          },
+        );
+      },
+    );
+  }
+
+  //!seach
+  void _onSearch() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (ctx) => SearchScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,98 +249,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(onPressed: _onArchive, icon: AppIcons.archive),
 
                   //delete
-                  IconButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text(
-                              'confirm_delete_title'.tr(context: context),
-                            ),
-                            actions: <Widget>[
-                              //no
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text('no'.tr(context: context)),
-                              ),
-
-                              //yes
-                              TextButton(
-                                onPressed: _onDelete,
-                                child: Text('yes'.tr(context: context)),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    icon: AppIcons.remove,
-                  ),
+                  IconButton(onPressed: _onDelete, icon: AppIcons.remove),
                 ]
                 : [
                   //print
-                  IconButton(
-                    onPressed: _onPrint,
-
-                    icon: AppIcons.print, // Excelni chop etish ikonasi
-                  ),
+                  IconButton(onPressed: _onPrint, icon: AppIcons.print),
 
                   //calculate
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (ctx) => CalculatorScreen()),
-                      );
-                    },
-                    icon: AppIcons.calculate,
-                  ),
+                  IconButton(onPressed: _onCalculate, icon: AppIcons.calculate),
 
                   //filter
-                  IconButton(
-                    onPressed: () {
-                      final parentContext = context; // yuqorida saqlab qo‘yamiz
-
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return FilterDateBottomSheet(
-                            startDate: AppGlobals.startDate,
-                            endDate: AppGlobals.endDate,
-                            onStartDateSelected: (pickedDate) {
-                              if (pickedDate != null) {
-                                AppGlobals.startDate.value = pickedDate;
-                              }
-                            },
-                            onEndDateSelected: (pickedDate) {
-                              if (pickedDate != null) {
-                                AppGlobals.endDate.value = pickedDate;
-                              }
-                            },
-                            onFilter: () {
-                              parentContext.read<CategoryBloc>().add(
-                                GetCategoriesEvent(isArchive: false),
-                              );
-                              Navigator.pop(context); // BottomSheet ni yopish
-                            },
-                          );
-                        },
-                      );
-                    },
-                    icon: AppIcons.filter,
-                  ),
+                  IconButton(onPressed: _onFilter, icon: AppIcons.filter),
 
                   //search
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (ctx) => SearchScreen()),
-                      );
-                    },
-                    icon: AppIcons.search,
-                  ),
+                  IconButton(onPressed: _onSearch, icon: AppIcons.search),
                 ],
       ),
       body: Column(

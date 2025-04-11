@@ -25,6 +25,9 @@ class ResultBloc extends Bloc<ResultEvent, ResultState> {
             allCashFlows: result,
             fromDate: AppGlobals.resultStartDate.value,
             toDate: AppGlobals.resultEndDate.value,
+            isExpenceIncluded: AppGlobals.resultIsIncludeExpence.value,
+            isIncomeIncluded: AppGlobals.resultIsIncludeIncome.value,
+            isInstallmentIncluded: AppGlobals.resultIsIncludeInstallment.value,
           ); // sizga mos parametr
           emit(ResultLoadedState(results));
         } else {

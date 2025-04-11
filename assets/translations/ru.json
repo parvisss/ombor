@@ -56,7 +56,8 @@
     "yes": "Да",
     "no": "Нет",
     "categories_archived_successfully": "Категории успешно архивированы",
-    "categories_deleted_successfully": "Категории успешно удалены"
+    "categories_deleted_successfully": "Категории успешно удалены",
+    "enter_search_term": "Введите поисковый запрос"
 
   }
   

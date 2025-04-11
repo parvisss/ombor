@@ -15,8 +15,18 @@ class ResultHelper {
     required List<CashFlowModel> allCashFlows,
     DateTime? fromDate,
     DateTime? toDate,
+    bool? isIncomeIncluded,
+    bool? isExpenceIncluded,
+    bool? isInstallmentIncluded,
   }) async {
-    return _filterCashFlowsByDate(allCashFlows, fromDate, toDate);
+    return _filterCashFlows(
+      cashFlows: allCashFlows,
+      fromDate: fromDate,
+      toDate: toDate,
+      isExpenceIncluded: isExpenceIncluded,
+      isIncomeIncluded: isIncomeIncluded,
+      isInstallmentIncluded: isInstallmentIncluded,
+    );
   }
 
   //! Faqat chiqim ma'lumotlarini olish
@@ -25,10 +35,10 @@ class ResultHelper {
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    final filteredByDate = _filterCashFlowsByDate(
-      allCashFlows,
-      fromDate,
-      toDate,
+    final filteredByDate = _filterCashFlows(
+      cashFlows: allCashFlows,
+      fromDate: fromDate,
+      toDate: toDate,
     );
     return filteredByDate.where((flow) => flow.isPositive == 0).toList();
   }
@@ -39,28 +49,37 @@ class ResultHelper {
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    final filteredByDate = _filterCashFlowsByDate(
-      allCashFlows,
-      fromDate,
-      toDate,
+    final filteredByDate = _filterCashFlows(
+      cashFlows: allCashFlows,
+      fromDate: fromDate,
+      toDate: toDate,
     );
+
     return filteredByDate.where((flow) => flow.isPositive == 1).toList();
   }
 
-  //! Sanaga ko'ra filtrlash uchun yordamchi funksiya
-
-  List<CashFlowModel> _filterCashFlowsByDate(
-    List<CashFlowModel> cashFlows,
+  List<CashFlowModel> _filterCashFlows({
+    required List<CashFlowModel> cashFlows,
     DateTime? fromDate,
     DateTime? toDate,
-  ) {
+    bool? isIncomeIncluded,
+    bool? isExpenceIncluded,
+    bool? isInstallmentIncluded,
+  }) {
     return cashFlows.where((flow) {
       DateTime? flowTime;
       try {
-        flowTime = DateFormat('dd/MM/yyyy').parse(flow.time);
+        flowTime = DateFormat('yyyy-MM-dd HH:mm:ss').parse(flow.time);
       } catch (e) {
-        print("Error parsing time: ${flow.time}. Error: $e");
-        return false; // Agar formatlashda xatolik bo'lsa, bu elementni o'tkazib yuboramiz
+        try {
+          flowTime = DateFormat('yyyy-MM-dd').parse(flow.time);
+        } catch (e) {
+          try {
+            flowTime = DateFormat('dd/MM/yyyy').parse(flow.time);
+          } catch (e) {
+            return false;
+          }
+        }
       }
 
       final isAfterOrEqual =
@@ -71,7 +90,32 @@ class ResultHelper {
           toDate == null ||
           flowTime.isBefore(toDate) ||
           flowTime.isAtSameMomentAs(toDate);
-      return isAfterOrEqual && isBeforeOrEqual;
+
+      // Tip bo‘yicha filtering (faqat belgilanganlari o‘tadi)
+      bool typeMatches = false;
+
+      if (isIncomeIncluded == true && flow.isPositive == 1) {
+        typeMatches = true;
+      }
+      if (isExpenceIncluded == true &&
+          flow.isPositive == 0 &&
+          flow.isInstallment == 0) {
+        typeMatches = true;
+      }
+      if (isInstallmentIncluded == true &&
+          flow.isPositive == 0 &&
+          flow.isInstallment == 1) {
+        typeMatches = true;
+      }
+
+      // Agar hech biri tanlanmagan bo‘lsa, hammasini chiqar
+      if (isIncomeIncluded == null &&
+          isExpenceIncluded == null &&
+          isInstallmentIncluded == null) {
+        typeMatches = true;
+      }
+
+      return isAfterOrEqual && isBeforeOrEqual && typeMatches;
     }).toList();
   }
 }

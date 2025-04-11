@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final bool isRequired;
   final bool isValid;
   final TextInputType keyboardType;
+  final VoidCallback? onChanged;
 
   const CustomTextField({
     super.key,
@@ -19,6 +20,7 @@ class CustomTextField extends StatelessWidget {
     this.isRequired = false,
     this.isValid = true,
     this.keyboardType = TextInputType.text,
+    this.onChanged,
   });
 
   @override

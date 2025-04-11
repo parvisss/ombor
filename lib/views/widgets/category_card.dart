@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ombor/models/category_model.dart';
+import 'package:ombor/utils/app_icons.dart';
 import 'package:ombor/utils/app_text_styles.dart';
 import 'package:ombor/views/screens/home/widgets/balance_text_widget.dart';
 
@@ -13,12 +14,21 @@ class CategoryCard extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16),
       title: Text(category.title, style: AppTextStyles.bodyLarge),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.center,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(category.time, style: AppTextStyles.labelSmall),
-          BalanceTextWidget(balance: category.balance),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(category.time, style: AppTextStyles.labelSmall),
+              BalanceTextWidget(balance: category.balance),
+            ],
+          ),
+          SizedBox(width: 20), // Icon va matn orasida biroz bo'sh joy
+          category.isArchived == 1
+              ? Icon(Icons.archive_outlined)
+              : AppIcons.arrowForqard,
         ],
       ),
     );

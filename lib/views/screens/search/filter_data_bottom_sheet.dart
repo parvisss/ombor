@@ -1,21 +1,34 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ombor/utils/app_colors.dart';
 
+// ignore: must_be_immutable
 class FilterDateBottomSheet extends StatefulWidget {
-  final ValueNotifier<DateTime?> startDate;
-  final ValueNotifier<DateTime?> endDate;
-  final void Function(DateTime?) onStartDateSelected;
-  final void Function(DateTime?) onEndDateSelected;
-  final VoidCallback? onFilter;
-  const FilterDateBottomSheet({
+  ValueNotifier<DateTime?> startDate;
+  ValueNotifier<DateTime?> endDate;
+  void Function(DateTime?) onStartDateSelected;
+  void Function(DateTime?) onEndDateSelected;
+  VoidCallback? onFilter;
+  ValueNotifier<bool?>? isIncludeInstallment;
+  ValueNotifier<bool?>? isIncludeIncome;
+  ValueNotifier<bool?>? isIncludeExpence;
+  void Function(bool?)? onInstallmentChangedSelected;
+  void Function(bool?)? onExpenceChangedSelected;
+  void Function(bool?)? onIncomeChangedSelected;
+  FilterDateBottomSheet({
     super.key,
     required this.startDate,
     required this.endDate,
     required this.onStartDateSelected,
     required this.onEndDateSelected,
     required this.onFilter,
+    this.isIncludeExpence,
+    this.isIncludeIncome,
+    this.isIncludeInstallment,
+    this.onExpenceChangedSelected,
+    this.onIncomeChangedSelected,
+    this.onInstallmentChangedSelected,
   });
 
   @override
@@ -23,10 +36,22 @@ class FilterDateBottomSheet extends StatefulWidget {
 }
 
 class _FilterDateBottomSheetState extends State<FilterDateBottomSheet> {
+  bool? _includeInstallment;
+  bool? _includeIncome;
+  bool? _includeExpence;
+
+  @override
+  void initState() {
+    super.initState();
+    _includeInstallment = widget.isIncludeInstallment?.value;
+    _includeIncome = widget.isIncludeIncome?.value;
+    _includeExpence = widget.isIncludeExpence?.value;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 270,
+      // height: 350, // Increased height to accommodate switches
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: AppColors.backgroundSecondary.withValues(alpha: 0.2),
@@ -41,7 +66,7 @@ class _FilterDateBottomSheetState extends State<FilterDateBottomSheet> {
           // Header Text
           Center(
             child: Text(
-              'Sana oralig\'ini tanlang',
+              'Filtrlash',
               style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
             ),
           ),
@@ -56,6 +81,45 @@ class _FilterDateBottomSheetState extends State<FilterDateBottomSheet> {
             onStartPressed: _selectStartDate,
             onEndPressed: _selectEndDate,
           ),
+          SizedBox(height: 16.0),
+
+          // Installment Filter
+          if (widget.isIncludeInstallment != null)
+            _buildFilterSwitch(
+              title: 'credit'.tr(context: context),
+              value: _includeInstallment,
+              onChanged: (bool? value) {
+                setState(() {
+                  _includeInstallment = value;
+                  widget.isIncludeInstallment?.value = value;
+                });
+              },
+            ),
+          // Income Filter
+          if (widget.isIncludeIncome != null)
+            _buildFilterSwitch(
+              title: 'Kirim',
+              value: _includeIncome,
+              onChanged: (bool? value) {
+                setState(() {
+                  _includeIncome = value;
+                  widget.isIncludeIncome?.value = value;
+                });
+              },
+            ),
+          // Expense Filter
+          if (widget.isIncludeExpence != null)
+            _buildFilterSwitch(
+              title: 'Chiqim',
+              value: _includeExpence,
+              onChanged: (bool? value) {
+                setState(() {
+                  _includeExpence = value;
+                  widget.isIncludeExpence?.value = value;
+                });
+              },
+            ),
+
           Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -122,20 +186,19 @@ class _FilterDateBottomSheetState extends State<FilterDateBottomSheet> {
     return ValueListenableBuilder<DateTime?>(
       valueListenable: date,
       builder: (context, currentDate, _) {
-        return Container(
-          padding: EdgeInsets.symmetric(
-            vertical: 14.0,
-            horizontal: 20.0,
-          ), // Custom padding
-          decoration: BoxDecoration(
-            color: AppColors.buttonColor, // Button color
-            borderRadius: BorderRadius.circular(12.0), // Rounded corners
-          ),
-          child: Material(
-            color: Colors.transparent, // Transparent material to catch tap
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(12.0), // Rounded tap area
+        return GestureDetector(
+          onTap: onPressed,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 14.0,
+              horizontal: 20.0,
+            ), // Custom padding
+            decoration: BoxDecoration(
+              color: AppColors.buttonColor, // Button color
+              borderRadius: BorderRadius.circular(12.0), // Rounded corners
+            ),
+            child: Material(
+              color: Colors.transparent, // Transparent material to catch tap
               child: Center(
                 child: Text(
                   currentDate == null
@@ -228,6 +291,18 @@ class _FilterDateBottomSheetState extends State<FilterDateBottomSheet> {
     setState(() {
       widget.startDate.value = null;
       widget.endDate.value = null;
+      _includeInstallment = null; // Ichki holatni null qilish
+      if (widget.isIncludeInstallment != null) {
+        widget.isIncludeInstallment!.value = true;
+      }
+      _includeIncome = null; // Ichki holatni null qilish
+      if (widget.isIncludeIncome != null) {
+        widget.isIncludeIncome!.value = true;
+      }
+      _includeExpence = null; // Ichki holatni null qilish
+      if (widget.isIncludeExpence != null) {
+        widget.isIncludeExpence!.value = true;
+      }
     });
   }
 
@@ -253,6 +328,28 @@ class _FilterDateBottomSheetState extends State<FilterDateBottomSheet> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
+      ),
+    );
+  }
+
+  // Helper function to build the filter switch
+  Widget _buildFilterSwitch({
+    required String title,
+    required bool? value,
+    required ValueChanged<bool?> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: TextStyle(fontSize: 16.0)),
+          CupertinoSwitch(
+            value: value ?? false,
+            onChanged: onChanged,
+            activeTrackColor: AppColors.mainColor,
+          ),
+        ],
       ),
     );
   }

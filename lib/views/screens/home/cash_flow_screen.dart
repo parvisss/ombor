@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_bloc.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_state.dart';
@@ -12,6 +13,8 @@ import 'package:ombor/models/cash_flow_model.dart';
 import 'package:ombor/utils/app_colors.dart';
 import 'package:ombor/utils/app_text_styles.dart';
 import 'package:ombor/views/screens/home/add_screen.dart';
+import 'package:ombor/views/screens/search/calculator_screen.dart';
+import 'package:ombor/views/screens/search/filter_data_bottom_sheet.dart';
 import 'package:ombor/views/widgets/cash_flow_card.dart';
 import 'package:ombor/views/widgets/custom_floating_button.dart';
 import 'package:ombor/views/widgets/custom_restart_button.dart';
@@ -69,6 +72,7 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
     });
   }
 
+  //!delete
   void _onDeleteSelectedCashFlows() {
     showDialog(
       context: context,
@@ -110,6 +114,7 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
     );
   }
 
+  //!print
   void _onPrint() async {
     {
       // ResultBlocdan ma'lumotlarni olish
@@ -178,6 +183,67 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
     }
   }
 
+  //!calculate
+  void _onCalculate() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (ctx) => CalculatorScreen()));
+  }
+
+  //!filter
+  void _onFilter() {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (ctx) => FilterDateBottomSheet(
+            //installmet
+            isIncludeInstallment: AppGlobals.cashFlowIsIncludeInstallment,
+            onInstallmentChangedSelected: (value) {
+              if (value != null) {
+                AppGlobals.cashFlowIsIncludeInstallment.value = value;
+              }
+            },
+            //expence
+            isIncludeExpence: AppGlobals.cashFlowIsIncludeExpence,
+            onExpenceChangedSelected: (value) {
+              if (value != null) {
+                AppGlobals.cashFlowIsIncludeExpence.value = value;
+              }
+            },
+            //income
+            isIncludeIncome: AppGlobals.cashFlowIsIncludeIncome,
+            onIncomeChangedSelected: (value) {
+              if (value != null) {
+                AppGlobals.cashFlowIsIncludeIncome.value = value;
+              }
+            },
+            //start date
+            startDate: AppGlobals.cashFlowStartDate,
+            onStartDateSelected: (pickedDate) {
+              if (pickedDate != null) {
+                AppGlobals.cashFlowStartDate.value = pickedDate;
+              }
+            },
+
+            //end date
+            endDate: AppGlobals.cashFlowEndDate,
+            onEndDateSelected: (pickedDate) {
+              if (pickedDate != null) {
+                AppGlobals.cashFlowEndDate.value = pickedDate;
+              }
+            },
+
+            //filter
+            onFilter: () {
+              context.read<CashFlowBloc>().add(
+                GetCashFlowsEvent(id: widget.categoryId),
+              );
+              Navigator.of(context).pop();
+            },
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,8 +271,8 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                 ]
                 : [
                   IconButton(onPressed: _onPrint, icon: AppIcons.print),
-                  IconButton(onPressed: () {}, icon: AppIcons.calculate),
-                  IconButton(onPressed: () {}, icon: AppIcons.filter),
+                  IconButton(onPressed: _onCalculate, icon: AppIcons.calculate),
+                  IconButton(onPressed: _onFilter, icon: AppIcons.filter),
                 ],
       ),
       body: Column(
@@ -224,7 +290,7 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                 } else if (state is CashFlowLoadedState) {
                   final cashFlows = state.cashFlows;
                   if (cashFlows.isEmpty) {
-                    return Center(child: Text("empty".tr(context: context)));
+                    return Center(child: Text("emptyy".tr(context: context)));
                   }
                   return RefreshIndicator(
                     onRefresh: () async {

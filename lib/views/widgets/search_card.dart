@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:ombor/models/cash_flow_model.dart';
+import 'package:ombor/utils/app_icons.dart';
 import 'package:ombor/utils/app_text_styles.dart';
 import 'package:ombor/views/screens/home/widgets/balance_text_widget.dart'; // Yangi modelni import qilish
 
-class CashFlowCard extends StatelessWidget {
+class SearchCard extends StatelessWidget {
   final CashFlowModel cashFlow;
-  final bool isSearch;
-  const CashFlowCard({
-    super.key,
-    required this.cashFlow,
-    this.isSearch = false,
-  });
+
+  const SearchCard({super.key, required this.cashFlow});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +16,6 @@ class CashFlowCard extends StatelessWidget {
       title: Text(cashFlow.title, style: AppTextStyles.bodyLarge),
       subtitle: Text(cashFlow.comment ?? '', style: AppTextStyles.labelSmall),
       trailing: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -32,12 +28,7 @@ class CashFlowCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(width: 20),
-          isSearch
-              ? cashFlow.isArchived == 1
-                  ? Icon(Icons.archive_outlined)
-                  : SizedBox()
-              : SizedBox(),
+          AppIcons.arrowForqard,
         ],
       ),
     );

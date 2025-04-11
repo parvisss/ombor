@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_event.dart';
 import 'package:ombor/controllers/blocs/cash_flow_bloc/cash_flow_state.dart';
 import 'package:ombor/models/helpers/cash_flof_db_helper.dart';
@@ -27,7 +28,14 @@ class CashFlowBloc extends Bloc<CashFlowEvent, CashFlowState> {
     on<GetCashFlowsEvent>((event, emit) async {
       emit(CashFlowLoadingState());
       try {
-        final cashFlows = await cashFlowHelper.getCashFlows(event.id);
+        final cashFlows = await cashFlowHelper.getCashFlows(
+          tableName: event.id,
+          fromDate: AppGlobals.cashFlowStartDate.value,
+          toDate: AppGlobals.cashFlowEndDate.value,
+          isExpenceIncluded: AppGlobals.cashFlowIsIncludeExpence.value,
+          isIncomeIncluded: AppGlobals.cashFlowIsIncludeIncome.value,
+          isInstallmentIncluded: AppGlobals.cashFlowIsIncludeInstallment.value,
+        );
         emit(CashFlowLoadedState(cashFlows));
       } catch (e) {
         emit(CashFlowErrorState("Failed to fetch cash flows"));
@@ -57,7 +65,7 @@ class CashFlowBloc extends Bloc<CashFlowEvent, CashFlowState> {
         emit(CashFlowDeletedState(event.ids));
         if (event.categoryId != null) {
           final cashFlows = await cashFlowHelper.getCashFlows(
-            event.categoryId!,
+            tableName: event.categoryId!,
           );
           emit(CashFlowLoadedState(cashFlows));
         }

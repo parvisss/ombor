@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:ombor/models/cash_flow_model.dart';
 
 import 'package:path/path.dart';
@@ -87,37 +88,73 @@ class CashFlowDBHelper {
 
   //! SELECT (bitta jadvaldan)
 
-  Future<List<CashFlowModel>> getCashFlows(
-    String tableName, {
-
-    bool? isArchived,
+  Future<List<CashFlowModel>> getCashFlows({
+    required String tableName,
+    DateTime? fromDate,
+    DateTime? toDate,
+    bool? isIncomeIncluded,
+    bool? isExpenceIncluded,
+    bool? isInstallmentIncluded,
   }) async {
     try {
       tableName = 'cash_flow_$tableName';
-
       final db = await database;
-
       await _createTableIfNotExists(tableName);
 
       List<Map<String, dynamic>> maps;
+      List<String> whereClauses = [];
+      List<dynamic> whereArgs = [];
 
-      if (isArchived != null) {
-        maps = await db.query(
-          tableName,
-
-          where: 'isArchived = ?',
-
-          whereArgs: [isArchived ? 1 : 0],
-        );
-      } else {
-        maps = await db.query(tableName);
+      // Sana bo‘yicha filter
+      if (fromDate != null) {
+        whereClauses.add('time >= ?');
+        whereArgs.add(DateFormat('yyyy-MM-dd HH:mm:ss').format(fromDate));
       }
+
+      if (toDate != null) {
+        final endOfDay = toDate.add(
+          const Duration(hours: 23, minutes: 59, seconds: 59),
+        );
+        whereClauses.add('time <= ?');
+        whereArgs.add(DateFormat('yyyy-MM-dd HH:mm:ss').format(endOfDay));
+      }
+
+      // Tur bo‘yicha filterlarni yig‘ish
+      List<String> typeConditions = [];
+
+      if (isIncomeIncluded == true) {
+        typeConditions.add('(isPositive = 1)');
+      }
+      if (isExpenceIncluded == true) {
+        typeConditions.add('(isPositive = 0 AND isInstallment = 0)');
+      }
+      if (isInstallmentIncluded == true) {
+        typeConditions.add('(isPositive = 0 AND isInstallment = 1)');
+      }
+
+      // Agar hech narsa tanlanmagan bo‘lsa — hech qanday type filter ishlatmaymiz
+      if (typeConditions.isNotEmpty) {
+        String combinedTypes = typeConditions.join(' OR ');
+        whereClauses.add('($combinedTypes)');
+      }
+
+      String? whereClause;
+      if (whereClauses.isNotEmpty) {
+        whereClause = whereClauses.join(' AND ');
+      }
+
+      maps = await db.query(
+        tableName,
+        where: whereClause,
+        whereArgs: whereArgs,
+      );
 
       List<CashFlowModel> data =
           maps.map((e) => CashFlowModel.fromMap(e)).toList();
 
       return data.reversed.toList();
     } catch (e) {
+      print("Error filtering cash flows: $e");
       return [];
     }
   }
@@ -238,13 +275,8 @@ class CashFlowDBHelper {
     }
   }
 
-  //!search
-
-  Future<List<CashFlowModel>> searchAllTables(
-    String query, {
-
-    bool? isArchived,
-  }) async {
+  //! Barcha cash flowlarni barcha jadvallardan, arxivlanganligiga qaramasdan olish
+  Future<List<CashFlowModel>> getAllCashFlowsFromAllTablesUnfiltered() async {
     try {
       final db = await database;
 
@@ -261,57 +293,29 @@ class CashFlowDBHelper {
           "PRAGMA table_info($tableName);",
         );
 
+        bool hasId = false;
+        bool hasCategoryId = false;
         bool hasTitle = false;
-
-        bool hasComment = false;
-
+        bool hasIsPositive = false;
         bool hasAmount = false;
-
-        bool hasIsArchivedColumn = false;
+        bool hasTime = false;
 
         for (var column in columns) {
+          if (column['name'] == 'id') hasId = true;
+          if (column['name'] == 'categoryId') hasCategoryId = true;
           if (column['name'] == 'title') hasTitle = true;
-
-          if (column['name'] == 'comment') hasComment = true;
-
+          if (column['name'] == 'isPositive') hasIsPositive = true;
           if (column['name'] == 'amount') hasAmount = true;
-
-          if (column['name'] == 'isArchived') hasIsArchivedColumn = true;
+          if (column['name'] == 'time') hasTime = true;
         }
 
-        if (hasTitle || hasComment || hasAmount) {
-          List<Map<String, dynamic>> maps;
-
-          List<String> whereClauses = [
-            'LOWER(title) LIKE ?',
-
-            'LOWER(comment) LIKE ?',
-
-            'CAST(amount AS TEXT) LIKE ?',
-          ];
-
-          List<String> whereArgs = [
-            '%${query.toLowerCase()}%',
-
-            '%${query.toLowerCase()}%',
-
-            '%$query%',
-          ];
-
-          if (isArchived != null && hasIsArchivedColumn) {
-            whereClauses.add('isArchived = ?');
-
-            whereArgs.add(isArchived ? '1' : '0');
-          }
-
-          maps = await db.query(
-            tableName,
-
-            where: whereClauses.join(' AND '),
-
-            whereArgs: whereArgs,
-          );
-
+        if (hasId &&
+            hasCategoryId &&
+            hasTitle &&
+            hasIsPositive &&
+            hasAmount &&
+            hasTime) {
+          final List<Map<String, dynamic>> maps = await db.query(tableName);
           allResults.addAll(maps.map((e) => CashFlowModel.fromMap(e)).toList());
         }
       }
@@ -320,6 +324,102 @@ class CashFlowDBHelper {
     } catch (e) {
       return [];
     }
+  }
+
+  //!search
+
+  // Future<List<CashFlowModel>> searchAllTables(
+  //   String query, {
+
+  //   bool? isArchived,
+  // }) async {
+  //   try {
+  //     final db = await database;
+
+  //     final List<Map<String, dynamic>> tables = await db.rawQuery(
+  //       "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'cash_flow_%';",
+  //     );
+
+  //     List<CashFlowModel> allResults = [];
+
+  //     for (var table in tables) {
+  //       final tableName = table['name'];
+
+  //       final List<Map<String, dynamic>> columns = await db.rawQuery(
+  //         "PRAGMA table_info($tableName);",
+  //       );
+  //       print(columns[tabl]);
+  //       print('-------------');
+  //       bool hasTitle = false;
+
+  //       bool hasComment = false;
+
+  //       bool hasAmount = false;
+
+  //       for (var column in columns) {
+  //         if (column['name'] == 'title') hasTitle = true;
+
+  //         if (column['name'] == 'comment') hasComment = true;
+
+  //         if (column['name'] == 'amount') hasAmount = true;
+  //       }
+
+  //       if (hasTitle || hasComment || hasAmount) {
+  //         List<Map<String, dynamic>> maps;
+
+  //         List<String> whereClauses = [
+  //           'LOWER(title) LIKE ?',
+
+  //           'LOWER(comment) LIKE ?',
+
+  //           'CAST(amount AS TEXT) LIKE ?',
+  //         ];
+
+  //         List<String> whereArgs = [
+  //           '%${query.toLowerCase()}%',
+
+  //           '%${query.toLowerCase()}%',
+
+  //           '%$query%',
+  //         ];
+
+  //         maps = await db.query(
+  //           tableName,
+
+  //           where: whereClauses.join(' AND '),
+
+  //           whereArgs: whereArgs,
+  //         );
+
+  //         print(maps.length);
+  //         allResults.addAll(maps.map((e) => CashFlowModel.fromMap(e)).toList());
+  //       }
+  //     }
+  //     print(allResults.length);
+  //     return allResults;
+  //   } catch (e) {
+  //     return [];
+  //   }
+  // }
+
+  List<CashFlowModel> searchCashFlowsFromList({
+    required List<CashFlowModel> cashFlows,
+    required String query,
+  }) {
+    if (query.isEmpty) {
+      return cashFlows; // Agar qidiruv so'zi bo'sh bo'lsa, barcha elementlarni qaytarish
+    }
+
+    final lowerQuery = query.toLowerCase();
+
+    return cashFlows.where((flow) {
+      final titleMatch = flow.title.toLowerCase().contains(lowerQuery);
+      final commentMatch =
+          flow.comment?.toLowerCase().contains(lowerQuery) ?? false;
+      final amountMatch = flow.amount.toString().contains(query);
+
+      return titleMatch || commentMatch || amountMatch;
+    }).toList();
   }
 
   //! Arxivlash/arxivdan chiqarish

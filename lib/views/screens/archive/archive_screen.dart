@@ -116,10 +116,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                 ),
         actions:
             isSelectionMode
-                ? [
-                  IconButton(onPressed: _unArchive, icon: AppIcons.unArchive),
-                  IconButton(onPressed: () {}, icon: AppIcons.remove),
-                ]
+                ? [IconButton(onPressed: _unArchive, icon: AppIcons.unArchive)]
                 : [
                   IconButton(
                     onPressed: () {

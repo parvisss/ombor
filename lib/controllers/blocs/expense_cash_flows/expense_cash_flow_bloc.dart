@@ -22,13 +22,14 @@ class ExpenseCashFlowBloc
             await cashFlowDBHelper.getAllCashFlowsFromAllTables();
         if (result.isNotEmpty) {
           List<CashFlowModel> data = await _resultHelper.getExpenseCashFlows(
-            allCashFlows: [],
+            allCashFlows: result,
             fromDate: AppGlobals.expenseIncomeStartDate.value,
             toDate: AppGlobals.expenseIncomeEndDate.value,
           );
           emit(ExpenseCashFlowLoadedState(data));
+        } else {
+          emit(ExpenseCashFlowLoadedState([]));
         }
-        emit(ExpenseCashFlowLoadedState([]));
       } catch (e) {
         emit(ExpenseCashFlowErrorState(e.toString()));
       }

@@ -1,9 +1,7 @@
 import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ombor/controllers/app_globals.dart';
 import 'package:ombor/controllers/blocs/result_bloc/result_bloc.dart';
 import 'package:ombor/controllers/blocs/result_bloc/result_event.dart';
@@ -37,6 +35,110 @@ class _ResultsScreenState extends State<ResultsScreen> {
     super.initState();
   }
 
+  //!print
+  void _onPrint() async {
+    // ResultBlocdan ma'lumotlarni olish
+    final state = context.read<ResultBloc>().state;
+    if (state is ResultLoadedState) {
+      final List<CashFlowModel> results = state.results;
+
+      // Excel faylni yaratish
+      final Workbook workbook = Workbook();
+      final Worksheet sheet = workbook.worksheets[0];
+
+      // Ustun nomlarini qo'shish: faqat "Title", "Amount", "Time"
+      if (results.isNotEmpty) {
+        // Ustunlar nomini tanlash (faqat kerakli maydonlar)
+        List<String> columns = [
+          'title_excel'.tr(context: context),
+          'amount_excel'.tr(context: context),
+          'date_excel'.tr(context: context),
+        ];
+
+        // Ustun nomlarini Excelga yozish
+        for (int col = 0; col < columns.length; col++) {
+          sheet.getRangeByIndex(1, col + 1).setText(columns[col]);
+        }
+
+        // Ma'lumotlarni Excelga yozish (faqat "title", "amount", "time")
+        for (int row = 0; row < results.length; row++) {
+          var data = [
+            results[row].title,
+            results[row].amount.toString(),
+            results[row].time.toString(),
+          ];
+
+          for (int col = 0; col < data.length; col++) {
+            sheet.getRangeByIndex(row + 2, col + 1).setText(data[col]);
+          }
+        }
+      }
+
+      // Excel faylni saqlash
+      final directory = await getApplicationSupportDirectory();
+      final String filename = '${directory.path}/output.xlsx';
+      final File file = File(filename);
+      final List<int> bytes = workbook.saveAsStream();
+      await file.writeAsBytes(bytes, flush: true);
+      workbook.dispose();
+
+      // Faylni boshqa dasturda ochish
+      OpenFile.open(filename);
+    }
+  }
+
+  //!filter
+  void _onFilter() {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (ctx) => FilterDateBottomSheet(
+            //installmet
+            isIncludeInstallment: AppGlobals.resultIsIncludeInstallment,
+            onInstallmentChangedSelected: (value) {
+              if (value != null) {
+                AppGlobals.resultIsIncludeInstallment.value = value;
+              }
+            },
+            //expence
+            isIncludeExpence: AppGlobals.resultIsIncludeExpence,
+            onExpenceChangedSelected: (value) {
+              if (value != null) {
+                AppGlobals.resultIsIncludeExpence.value = value;
+              }
+            },
+            //income
+            isIncludeIncome: AppGlobals.resultIsIncludeIncome,
+            onIncomeChangedSelected: (value) {
+              if (value != null) {
+                AppGlobals.resultIsIncludeIncome.value = value;
+              }
+            },
+            //start date
+            startDate: AppGlobals.resultStartDate,
+            onStartDateSelected: (pickedDate) {
+              if (pickedDate != null) {
+                AppGlobals.resultStartDate.value = pickedDate;
+              }
+            },
+
+            //end date
+            endDate: AppGlobals.resultEndDate,
+            onEndDateSelected: (pickedDate) {
+              if (pickedDate != null) {
+                AppGlobals.resultEndDate.value = pickedDate;
+              }
+            },
+
+            //filter
+            onFilter: () {
+              context.read<ResultBloc>().add(GetResultEvent());
+              Navigator.of(context).pop();
+            },
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.read<ResultBloc>().add(GetResultEvent());
@@ -49,58 +151,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         actions: [
           //**print */
           IconButton(
-            onPressed: () async {
-              // ResultBlocdan ma'lumotlarni olish
-              final state = context.read<ResultBloc>().state;
-              if (state is ResultLoadedState) {
-                final List<CashFlowModel> results = state.results;
-
-                // Excel faylni yaratish
-                final Workbook workbook = Workbook();
-                final Worksheet sheet = workbook.worksheets[0];
-
-                // Ustun nomlarini qo'shish: faqat "Title", "Amount", "Time"
-                if (results.isNotEmpty) {
-                  // Ustunlar nomini tanlash (faqat kerakli maydonlar)
-                  List<String> columns = [
-                    'title_excel'.tr(context: context),
-                    'amount_excel'.tr(context: context),
-                    'date_excel'.tr(context: context),
-                  ];
-
-                  // Ustun nomlarini Excelga yozish
-                  for (int col = 0; col < columns.length; col++) {
-                    sheet.getRangeByIndex(1, col + 1).setText(columns[col]);
-                  }
-
-                  // Ma'lumotlarni Excelga yozish (faqat "title", "amount", "time")
-                  for (int row = 0; row < results.length; row++) {
-                    var data = [
-                      results[row].title,
-                      results[row].amount.toString(),
-                      results[row].time.toString(),
-                    ];
-
-                    for (int col = 0; col < data.length; col++) {
-                      sheet
-                          .getRangeByIndex(row + 2, col + 1)
-                          .setText(data[col]);
-                    }
-                  }
-                }
-
-                // Excel faylni saqlash
-                final directory = await getApplicationSupportDirectory();
-                final String filename = '${directory.path}/output.xlsx';
-                final File file = File(filename);
-                final List<int> bytes = workbook.saveAsStream();
-                await file.writeAsBytes(bytes, flush: true);
-                workbook.dispose();
-
-                // Faylni boshqa dasturda ochish
-                OpenFile.open(filename);
-              }
-            },
+            onPressed: _onPrint,
 
             icon: AppIcons.print, // Excelni chop etish ikonasi
           ),
@@ -116,33 +167,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ),
 
           //**filter
-          IconButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder:
-                    (ctx) => FilterDateBottomSheet(
-                      startDate: AppGlobals.resultStartDate,
-                      endDate: AppGlobals.resultEndDate,
-                      onStartDateSelected: (pickedDate) {
-                        if (pickedDate != null) {
-                          AppGlobals.resultStartDate.value = pickedDate;
-                        }
-                      },
-                      onEndDateSelected: (pickedDate) {
-                        if (pickedDate != null) {
-                          AppGlobals.resultEndDate.value = pickedDate;
-                        }
-                      },
-                      onFilter: () {
-                        context.read<ResultBloc>().add(GetResultEvent());
-                        context.pop();
-                      },
-                    ),
-              );
-            },
-            icon: AppIcons.filter,
-          ),
+          IconButton(onPressed: _onFilter, icon: AppIcons.filter),
         ],
       ),
       body: BlocBuilder<ResultBloc, ResultState>(
